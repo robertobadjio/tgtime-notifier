@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    container_name: cloud-time-tracker-app
+    ports:
+      - "1122:8080"
+    networks:
+      - cloud-time-tracker-network
+
+networks:
+  cloud-time-tracker-network:
+    driver: bridge

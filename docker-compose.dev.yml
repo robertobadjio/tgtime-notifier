@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  app:
+    depends_on:
+      officetime-api:
+        condition: service_healthy
+  officetime-api:
+    build:
+      context: .
+      dockerfile: ./docker/officetime-api/Dockerfile
+    ports:
+      - "1080:1080"
+    environment:
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/initializerJson.json
+      MOCKSERVER_LOG_LEVEL: INFO
+      MOCKSERVER_PROPERTY_FILE: /config/mockserver.properties
+    volumes:
+      - ./docker/officetime-api/config:/config
+      - ./docker/officetime-api/config/mockserver.properties:/config/mockserver.properties
+    networks:
+      - cloud-time-tracker-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1080/liveness/probe"]
+      interval: 10s
+      timeout: 10s
+      retries: 5

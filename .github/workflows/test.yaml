@@ -1,0 +1,54 @@
+name: Officetime-Api-Test
+
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+        branches:
+            - master
+
+jobs:
+    test:
+        strategy:
+            matrix:
+                go-version: [1.22.x]
+                os: [ubuntu-latest]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            - name: Set up Go
+              uses: actions/setup-go@v4
+              with:
+                go-version: ${{ matrix.go-version }}
+
+            - name: Add config
+              run: |
+                touch ./.env
+                echo BOT_TOKEN="dev" >> .env
+                echo ROUTER_ADDRESS="db" >> .env
+                echo ROUTER_USER_NAME="5432" >> .env
+                echo ROUTER_PASSWORD="officetime" >> .env
+                echo WEBHOOK_PATH="officetime" >> .env
+                echo API_URL="officetime" >> .env
+                echo API_MASTER_EMAIL="disable" >> .env
+                echo API_MASTER_PASSWORD="vtlcgjgek" >> .env
+                cat ./.env
+
+            - name: Build containers
+              run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
+
+            - name: Start containers
+              run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+            - name: Health check
+              run: |
+                docker logs --since=25m officetime-api-db
+                docker-compose ps
+                docker run --network container:officetime-api-app appropriate/curl -s --retry 10 --retry-connrefused --retry-delay 5 --retry-max-time 30 http://localhost:8080/ping
+
+            - name: Stop containers
+              if: always()
+              run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml down

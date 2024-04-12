@@ -1,0 +1,81 @@
+[
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/user"
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": [
+        {
+          "name": "Content-Type",
+          "values": [
+            "application/json"
+          ]
+        }
+      ],
+      "body": {
+        "users": [
+          {
+            "Id": 1,
+            "Name": "Иван",
+            "Email": "test@mail.ru",
+            "MacAddress": "d0:2b:20:eb:3d:9d",
+            "TelegramId": 1466023675
+          }
+        ]
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/period"
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": [
+        {
+          "name": "Content-Type",
+          "values": [
+            "application/json"
+          ]
+        }
+      ],
+      "body": {
+        "periods": [
+          {
+            "Id": 1,
+            "Name": "Январь",
+            "Year": 2024,
+            "BeginDate": "2024-01-01",
+            "EndDate": "2024-12-31"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/login"
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": [
+        {
+          "name": "Content-Type",
+          "values": [
+            "application/json"
+          ]
+        }
+      ],
+      "body": {
+        "access_token": "asdsad",
+        "refresh_token": "asdasd",
+        "access_token_expires": 1123123,
+        "refresh_token_expires": 2342234234
+      }
+    }
+  }
+]
