@@ -1,1 +1,1 @@
-Telegram Time Telegram Notifier Microservice
+Telegram Time Notifier Microservice

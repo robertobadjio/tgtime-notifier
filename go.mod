@@ -1,6 +1,6 @@
 module tgtime-notifier
 
-go 1.22
+go 1.22.0
 
 require (
 	github.com/go-kit/kit v0.13.0
