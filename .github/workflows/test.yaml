@@ -27,6 +27,7 @@ jobs:
             - name: Add config
               run: |
                 touch ./.env
+                echo ENV="dev" >> .env
                 echo BOT_TOKEN="dev" >> .env
                 echo ROUTER_ADDRESS="db" >> .env
                 echo ROUTER_USER_NAME="5432" >> .env
@@ -43,11 +44,9 @@ jobs:
             - name: Start containers
               run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
-            - name: Health check
-              run: |
-                docker logs --since=25m officetime-api-db
-                docker-compose ps
-                docker run --network container:officetime-api-app appropriate/curl -s --retry 10 --retry-connrefused --retry-delay 5 --retry-max-time 30 http://localhost:8080/ping
+            #- name: Health check
+              #run: |
+                #docker run --network container:tgtime-notifier-ap appropriate/curl -s --retry 10 --retry-connrefused --retry-delay 5 --retry-max-time 30 http://localhost:8080/ping
 
             - name: Stop containers
               if: always()

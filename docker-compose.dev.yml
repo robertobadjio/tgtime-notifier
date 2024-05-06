@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
-  app-notifier:
+  tgtime-notifier-app:
     depends_on:
       tgtime-api:
         condition: service_healthy
   tgtime-api:
     build:
-      context: tgtime-notifier
-      dockerfile: ./docker/officetime-api/Dockerfile
+      context: .
+      dockerfile: ./docker/tgtime-api/Dockerfile
     ports:
       - "1080:1080"
     environment:
