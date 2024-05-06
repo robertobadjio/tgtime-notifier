@@ -28,14 +28,6 @@ jobs:
               run: |
                 touch ./.env
                 echo ENV="dev" >> .env
-                echo BOT_TOKEN="dev" >> .env
-                echo ROUTER_ADDRESS="db" >> .env
-                echo ROUTER_USER_NAME="5432" >> .env
-                echo ROUTER_PASSWORD="officetime" >> .env
-                echo WEBHOOK_PATH="officetime" >> .env
-                echo API_URL="officetime" >> .env
-                echo API_MASTER_EMAIL="disable" >> .env
-                echo API_MASTER_PASSWORD="vtlcgjgek" >> .env
                 cat ./.env
 
             - name: Build containers
