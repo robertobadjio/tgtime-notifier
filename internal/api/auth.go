@@ -1,10 +1,10 @@
 package api
 
 import (
-	"cloud-time-tracker/cmd/officetime/config"
 	"encoding/json"
 	"net/http"
 	"strings"
+	"tgtime-notifier/internal/config"
 )
 
 type Tokens struct {

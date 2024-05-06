@@ -1,11 +1,11 @@
 package api
 
 import (
-	"cloud-time-tracker/cmd/officetime/config"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"tgtime-notifier/internal/config"
 	"time"
 )
 

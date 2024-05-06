@@ -13,12 +13,15 @@ type Config struct {
 	RouterUserName    string
 	RouterPassword    string
 	WebHookPath       string
+	WebHookLink       string
 	ApiURL            string
 	ApiMasterEmail    string
 	ApiMasterPassword string
+	KafkaHost         string
+	KafkaPort         string
 }
 
-const projectDirName = "cloud-time-tracker"
+const projectDirName = "tgtime-notifier"
 
 func init() {
 	loadEnv()
@@ -31,9 +34,12 @@ func New() *Config {
 		RouterUserName:    getEnv("ROUTER_USER_NAME", ""),
 		RouterPassword:    getEnv("ROUTER_PASSWORD", ""),
 		WebHookPath:       getEnv("WEBHOOK_PATH", ""),
+		WebHookLink:       getEnv("WEBHOOK_LINK", ""),
 		ApiURL:            getEnv("API_URL", ""),
 		ApiMasterEmail:    getEnv("API_MASTER_EMAIL", ""),
 		ApiMasterPassword: getEnv("API_MASTER_PASSWORD", ""),
+		KafkaHost:         getEnv("KAFKA_HOST", ""),
+		KafkaPort:         getEnv("KAFKA_PORT", ""),
 	}
 }
 

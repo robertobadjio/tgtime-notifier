@@ -77,6 +77,21 @@ func (otc *officeTimeClient) GetTimesByDate(userId int, date time.Time) (*TimeRe
 	return &timeStruct, nil
 }
 
+// TODO: Реализовать метод
+func (otc *officeTimeClient) GetTimesTelegramIdByDate(telegramId int, date time.Time) (*TimeResponse, error) {
+	request, err := http.NewRequest(http.MethodGet, otc.baseURL+"/time/"+strconv.Itoa(telegramId)+"/day/"+date.Format("2006-01-02"), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	timeStruct := TimeResponse{}
+	if err := otc.sendRequest(request, &timeStruct); err != nil {
+		return nil, err
+	}
+
+	return &timeStruct, nil
+}
+
 func (otc *officeTimeClient) GetStatByWorkingPeriod(userId, periodId int) (*StatByWorkingPeriod, error) {
 	request, err := http.NewRequest("GET", otc.baseURL+"/stat/working-period/"+strconv.Itoa(userId)+"/period/"+strconv.Itoa(periodId), nil)
 	if err != nil {

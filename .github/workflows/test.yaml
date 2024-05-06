@@ -1,4 +1,4 @@
-name: Officetime-Api-Test
+name: TgTime Notifier Test
 
 on:
     push:

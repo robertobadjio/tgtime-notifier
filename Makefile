@@ -8,9 +8,11 @@ include .env
 ENV ?= dev
 
 ifdef ENV
-ifneq "$(ENV)" ""
-	DOCKER_COMPOSE := $(DOCKER_COMPOSE) -f docker-compose.$(ENV).yml
-endif
+	ifneq "$(ENV)" ""
+		ifneq ("$(wildcard docker-compose.$(ENV).yml)","")
+			DOCKER_COMPOSE := $(DOCKER_COMPOSE) -f docker-compose.$(ENV).yml
+		endif
+	endif
 endif
 
 export GOOS=linux

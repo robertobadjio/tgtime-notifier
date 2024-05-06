@@ -1,4 +1,4 @@
-name: Officetime-Api-Audit
+name: TgTime Notifier Audit
 
 on:
     push:

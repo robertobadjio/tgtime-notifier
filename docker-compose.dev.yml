@@ -1,13 +1,13 @@
 version: '3.8'
 
 services:
-  app:
+  app-notifier:
     depends_on:
-      officetime-api:
+      tgtime-api:
         condition: service_healthy
-  officetime-api:
+  tgtime-api:
     build:
-      context: .
+      context: tgtime-notifier
       dockerfile: ./docker/officetime-api/Dockerfile
     ports:
       - "1080:1080"
@@ -16,10 +16,10 @@ services:
       MOCKSERVER_LOG_LEVEL: INFO
       MOCKSERVER_PROPERTY_FILE: /config/mockserver.properties
     volumes:
-      - ./docker/officetime-api/config:/config
-      - ./docker/officetime-api/config/mockserver.properties:/config/mockserver.properties
+      - ./docker/tgtime-api/config:/config
+      - ./docker/tgtime-api/config/mockserver.properties:/config/mockserver.properties
     networks:
-      - cloud-time-tracker-network
+      - tgtime-notifier-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:1080/liveness/probe"]
       interval: 10s

@@ -3,13 +3,14 @@ version: '3.8'
 services:
   tgtime-notifier-app:
     build:
-      context: .
+      context: tgtime-notifier
       dockerfile: ./docker/app/Dockerfile
     container_name: tgtime-notifier-app
     ports:
       - "1122:8080"
     networks:
       - tgtime-notifier-network
+      - kafka-network
 
 networks:
   tgtime-notifier-network:
