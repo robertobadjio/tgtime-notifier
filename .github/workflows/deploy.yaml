@@ -12,6 +12,10 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+defaults:
+  run:
+    working-directory: ./app
+
 jobs:
     build:
       runs-on: ubuntu-latest
@@ -62,7 +66,8 @@ jobs:
         - name: Build and push Docker image
           uses: docker/build-push-action@v4
           with:
-            file: ./docker/app/Dockerfile
+            file: app/docker/app/Dockerfile
+            context: ./app
             push: true
             tags: ${{ steps.meta.outputs.tags }}
             labels: ${{ steps.meta.outputs.labels }}
