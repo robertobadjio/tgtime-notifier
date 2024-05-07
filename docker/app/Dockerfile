@@ -7,7 +7,7 @@ WORKDIR /app
 COPY ../../go.mod go.sum ./
 RUN go mod download
 
-RUN ls -la
+RUN echo $(ls -la)
 
 COPY ../../cmd/notifier/notifier.go ./
 COPY ../../internal internal
