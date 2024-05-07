@@ -53,16 +53,10 @@ jobs:
         - name: Set up Docker Buildx
           uses: docker/setup-buildx-action@v2
 
-        #- name: Add config
-          #run: |
-            #echo ENV="dev" >> .env
-            #ls -la
-
-        - name: Create .env file
-          uses: SpicyPizza/create-envfile@v2
-          with:
-            envkey_ENV: dev
-            file_name: .env
+        - name: Add config
+          run: |
+            echo ENV="dev" >> ./env
+            ls -la
 
         - name: Build and push Docker image
           uses: docker/build-push-action@v4
