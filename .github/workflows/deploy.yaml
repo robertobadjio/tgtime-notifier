@@ -54,6 +54,8 @@ jobs:
           uses: docker/setup-buildx-action@v2
 
         - name: Add config
+          with:
+            context: ./
           run: |
             touch ./.env
             echo ENV="dev" >> .env
