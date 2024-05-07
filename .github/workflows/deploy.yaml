@@ -57,7 +57,6 @@ jobs:
         - name: Add config
           run: |
             echo ENV="dev" >> ./.env
-            ls -la
 
         - name: Build and push Docker image
           uses: docker/build-push-action@v5
@@ -65,5 +64,5 @@ jobs:
             file: ./docker/app/Dockerfile
             context: .
             push: true
-            tags: ${{ secrets.DOCKERHUB_USERNAME }}/tgtime-notifier:latest
+            tags: ${{ env.IMAGE_NAME }}:latest
             #labels: ${{ steps.meta.outputs.labels }}
