@@ -12,9 +12,9 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
-#defaults:
-  #run:
-    #working-directory: ./app
+defaults:
+  run:
+    working-directory: app
 
 jobs:
     build:
@@ -59,15 +59,18 @@ jobs:
 
         - name: Add config
           run: |
-            cd /home/runner/work/tgtime-notifier/tgtime-notifier
+            
             echo ENV="dev" >> ./.env
             ls -la
 
         - name: Build and push Docker image
           uses: docker/build-push-action@v4
+          run: |
+            echo ENV="dev" >> ./.env
+                        ls -la
           with:
             file: ./docker/app/Dockerfile
-            #context: ./app
+            context: ./app
             push: true
             tags: ${{ steps.meta.outputs.tags }}
             labels: ${{ steps.meta.outputs.labels }}
