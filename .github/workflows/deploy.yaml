@@ -56,8 +56,6 @@ jobs:
 
         - name: Add config
           run: |
-            echo "ls -a ${{ github.workspace }}"
-            ls -a ${{ github.workspace }}
             echo ENV="dev" >> ./.env
             ls -la
 
@@ -67,5 +65,5 @@ jobs:
             file: ./docker/app/Dockerfile
             context: .
             push: true
-            tags: ${{ steps.meta.outputs.tags }}
-            labels: ${{ steps.meta.outputs.labels }}
+            tags: ${{ secrets.DOCKERHUB_USERNAME }}/tgtime-notifier:latest
+            #labels: ${{ steps.meta.outputs.labels }}
