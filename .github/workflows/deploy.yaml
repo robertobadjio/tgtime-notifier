@@ -55,15 +55,12 @@ jobs:
 
         - name: Add config
           run: |
-            touch ./.env
             echo ENV="dev" >> .env
-            cat ./.env
             ls -la
 
         - name: Build and push Docker image
           uses: docker/build-push-action@v4
           with:
-            context: .
             file: ./docker/app/Dockerfile
             push: true
             tags: ${{ steps.meta.outputs.tags }}
