@@ -59,6 +59,7 @@ jobs:
 
         - name: Add config
           run: |
+            ls -la
             cd ../tgtime-notifier
             echo ENV="dev" >> ./.env
             ls -la
