@@ -55,7 +55,7 @@ jobs:
 
         - name: Add config
           run: |
-            echo ENV="dev" >> ./env
+            echo ENV="dev" >> ./.env
             ls -la
 
         - name: Build and push Docker image
