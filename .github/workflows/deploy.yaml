@@ -65,11 +65,8 @@ jobs:
 
         - name: Build and push Docker image
           uses: docker/build-push-action@v4
-          run: |
-            echo ENV="dev" >> ./.env
-                        ls -la
           with:
-            file: ./docker/app/Dockerfile
+            file: ./app/docker/app/Dockerfile
             context: ./app
             push: true
             tags: ${{ steps.meta.outputs.tags }}
