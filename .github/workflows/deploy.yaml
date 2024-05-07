@@ -53,6 +53,12 @@ jobs:
         - name: Set up Docker Buildx
           uses: docker/setup-buildx-action@v2
 
+        - name: Add config
+          run: |
+            touch ./.env
+            echo ENV="dev" >> .env
+            cat ./.env
+
         - name: Build and push Docker image
           uses: docker/build-push-action@v4
           with:
