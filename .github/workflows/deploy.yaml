@@ -12,9 +12,9 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
-#defaults:
-  #run:
-    #working-directory: app
+defaults:
+  run:
+    working-directory: .
 
 jobs:
     build:
