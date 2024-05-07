@@ -55,6 +55,7 @@ jobs:
 
         - name: Add config
           run: |
+            cd ~
             echo ENV="dev" >> ./.env
             ls -la
 
