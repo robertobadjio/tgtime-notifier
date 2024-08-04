@@ -15,6 +15,7 @@ func (t *TelegramNotifier) Info(_ context.Context, update tgbotapi.Update) {
 	// TODO: стратегия
 	if update.Message.Text == buttonWorkingTime {
 		c := api.NewOfficeTimeClient()
+		// TODO: Получить по GRPC
 		response, err := c.GetTimesTelegramIdByDate(telegramId, time.Now())
 		if err != nil {
 			panic(err)
@@ -49,11 +50,25 @@ func (t *TelegramNotifier) Info(_ context.Context, update tgbotapi.Update) {
 		}
 		t.bot.Send(t.setKeyboard(messageTelegram))
 	} else if update.Message.Text == buttonStatCurrentWorkingPeriod {
-		c := api.NewOfficeTimeClient()
-		result, err := c.GetStatByWorkingPeriod(telegramId, getCurrentPeriod())
-		if err != nil {
-			panic(err)
-		}
+		// TODO: Реализовать в tgtime-api метод полчения идентификатора текущего периода
+		// Период и даты получили.
+		// TODO: С переодом нужно получить result.TotalWorkingHours, - рабочее колисчество часов в периоде
+		// StartWorkingDate, err := time.Parse(time.RFC3339, period.BeginDate)
+		//	if err != nil {
+		//		panic(err)
+		//	}
+		//	EndWorkingDate, err := time.Parse(time.RFC3339, period.EndDate)
+		//	if err != nil {
+		//		panic(err)
+		//	}
+		// StartWorkingDate:  start.Format("02.01.2006"),
+		//		EndWorkingDate:    end.Format("02.01.2006"),
+		// TODO: Запрашиваем в tgtime-aggregator time summary по macAddress и dates
+		// var totalMonthWorkingTime int64
+		//	for _, timeResponse := range periodUser.Time {
+		//		totalMonthWorkingTime += timeResponse.Total
+		//	}
+		// WorkingHours:      totalMonthWorkingTime / 3600,
 
 		message := tgbotapi.NewMessage(
 			int64(telegramId),
@@ -84,30 +99,6 @@ func secondsToHM(seconds int) (int, int) {
 	minutes := (seconds / 60) - (hours * 60)
 
 	return hours, minutes
-}
-
-func getCurrentPeriod() int {
-	c := api.NewOfficeTimeClient()
-	periods, err := c.GetAllPeriods()
-	if err != nil {
-		panic(err)
-	}
-
-	for _, period := range periods.Periods {
-		// TODO: Начало и окончания каждого месяца мне входят в интервал
-		// if GetNow().After(GetTimeFromStringDate(period.BeginDate)) && GetNow().Before(GetTimeFromStringDate(period.EndDate).Add(time.Hour * 24)) {
-		if getNow().After(getTimeFromStringDate(period.BeginDate)) && getNow().Before(getTimeFromStringDate(period.EndDate)) {
-			return period.Id
-		}
-	}
-
-	return 0
-}
-
-func getTimeFromStringDate(date string) time.Time {
-	timeObject, _ := time.ParseInLocation("2006-01-02", date, getMoscowLocation())
-
-	return timeObject
 }
 
 func getNow() time.Time {

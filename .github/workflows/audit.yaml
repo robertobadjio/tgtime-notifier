@@ -26,7 +26,8 @@ jobs:
 
             - name: Add config
               run: |
-                
+                touch ./.env
+                echo ENV="dev" >> .env
 
             - name: Verify dependencies
               run: go mod verify

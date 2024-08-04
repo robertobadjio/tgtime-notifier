@@ -49,7 +49,6 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, nt notifier.Notifier) error
 		}
 		fmt.Printf("message at offset %d: %s = %s\n", m.Offset, string(m.Key), string(m.Value))
 
-		// TODO: Вынести отправку сообщения
 		//_ = nt.SendWelcomeMessage(ctx, int64(telegramId)) // 343536263 // TODO: Handle error
 		err = nt.SendWelcomeMessage(ctx, 343536263)
 		if err != nil {
