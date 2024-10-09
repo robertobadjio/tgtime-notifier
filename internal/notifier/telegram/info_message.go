@@ -2,10 +2,9 @@ package telegram
 
 import (
 	"context"
-	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"tgtime-notifier/internal/api"
-	"tgtime-notifier/internal/notifier"
+	//"tgtime-notifier/internal/api"
+	//"tgtime-notifier/internal/notifier"
 	"time"
 )
 
@@ -14,7 +13,7 @@ func (t *TelegramNotifier) Info(_ context.Context, update tgbotapi.Update) {
 
 	// TODO: стратегия
 	if update.Message.Text == buttonWorkingTime {
-		c := api.NewOfficeTimeClient()
+		/*c := api.NewOfficeTimeClient()
 		// TODO: Получить по GRPC
 		response, err := c.GetTimesTelegramIdByDate(telegramId, time.Now())
 		if err != nil {
@@ -48,7 +47,7 @@ func (t *TelegramNotifier) Info(_ context.Context, update tgbotapi.Update) {
 			}
 			messageTelegram = tgbotapi.NewMessage(int64(telegramId), message)
 		}
-		t.bot.Send(t.setKeyboard(messageTelegram))
+		t.bot.Send(t.setKeyboard(messageTelegram))*/
 	} else if update.Message.Text == buttonStatCurrentWorkingPeriod {
 		// TODO: Реализовать в tgtime-api метод полчения идентификатора текущего периода
 		// Период и даты получили.
@@ -70,7 +69,7 @@ func (t *TelegramNotifier) Info(_ context.Context, update tgbotapi.Update) {
 		//	}
 		// WorkingHours:      totalMonthWorkingTime / 3600,
 
-		message := tgbotapi.NewMessage(
+		/*message := tgbotapi.NewMessage(
 			int64(telegramId),
 			fmt.Sprintf(
 				"Статистика за период с %s до %s\nВсего в этом месяце %d из %d часов",
@@ -80,7 +79,7 @@ func (t *TelegramNotifier) Info(_ context.Context, update tgbotapi.Update) {
 				result.TotalWorkingHours,
 			))
 
-		t.bot.Send(t.setKeyboard(message))
+		t.bot.Send(t.setKeyboard(message))*/
 	} else if update.Message.Text == buttonStart {
 		message := tgbotapi.NewMessage(
 			int64(telegramId),
