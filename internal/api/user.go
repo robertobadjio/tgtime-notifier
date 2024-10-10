@@ -6,12 +6,16 @@ import (
 	"strings"
 )
 
+type UserData struct {
+	User User `json:"user"`
+}
+
 type User struct {
 	MacAddress string `json:"macAddress"`
 	TelegramId int64  `json:"telegramId"`
 }
 
-func (otc *officeTimeClient) GetUserByMacAddress(macAddress string) (*User, error) {
+func (otc *officeTimeClient) GetUserByMacAddress(macAddress string) (*UserData, error) {
 	/*cfg := config.New()
 	authData := new(LoginData)
 	authData.Email = cfg.ApiMasterEmail
@@ -24,7 +28,7 @@ func (otc *officeTimeClient) GetUserByMacAddress(macAddress string) (*User, erro
 		return nil, err
 	}
 
-	user := User{}
+	user := UserData{}
 	if err = otc.sendRequest(request, &user); err != nil {
 		return nil, err
 	}
