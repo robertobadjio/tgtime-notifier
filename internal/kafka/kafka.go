@@ -51,6 +51,7 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, nt notifier.Notifier) error
 			}
 		}
 		fmt.Printf("message at offset %d: %s = %s\n", m.Offset, string(m.Key), string(m.Value))
+		fmt.Printf(string(m.Value))
 
 		userData, err := tgtimeClient.GetUserByMacAddress(string(m.Value))
 		if err != nil {

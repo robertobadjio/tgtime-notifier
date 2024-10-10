@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -23,6 +24,7 @@ func (otc *officeTimeClient) GetUserByMacAddress(macAddress string) (*UserData, 
 	params, _ := json.Marshal(authData)
 	payload := strings.NewReader(string(params))
 
+	fmt.Println(otc.baseURL + "/user-by-mac-address/" + macAddress)
 	request, err := http.NewRequest(http.MethodGet, otc.baseURL+"/user-by-mac-address/"+macAddress, payload)
 	if err != nil {
 		return nil, err
