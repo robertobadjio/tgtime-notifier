@@ -61,6 +61,9 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, nt notifier.Notifier) error
 			fmt.Println("user not found")
 			continue
 		}
+
+		fmt.Println("user:", userData)
+
 		//_ = nt.SendWelcomeMessage(ctx, int64(telegramId)) // 343536263 // TODO: Handle error
 		//err = nt.SendWelcomeMessage(ctx, 343536263) // TODO: При запуске сервера сходить один раз в API и получить всех пользователй с их TgId
 		err = nt.SendWelcomeMessage(ctx, userData.User.TelegramId)
