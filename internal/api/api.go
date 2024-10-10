@@ -39,7 +39,7 @@ func NewOfficeTimeClient() *officeTimeClient {
 func (otc *officeTimeClient) sendRequest(request *http.Request, v interface{}) error {
 	request.Header.Add("Content-Type", "application/json")
 
-	if request.URL.String() != otc.baseURL+"/login" {
+	/*if request.URL.String() != otc.baseURL+"/login" {
 		if authData.AccessTokenExpires <= uint64(time.Now().Unix()) {
 			c := NewOfficeTimeClient()
 			data, err := c.Login()
@@ -55,7 +55,7 @@ func (otc *officeTimeClient) sendRequest(request *http.Request, v interface{}) e
 		}
 
 		request.Header.Add("Token", authData.AccessToken)
-	}
+	}*/
 
 	response, err := otc.HTTPClient.Do(request)
 	if err != nil {
