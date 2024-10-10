@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/kit/log"
 	kafkaLib "github.com/segmentio/kafka-go"
 	"io"
+	"tgtime-notifier/internal/api"
 	"tgtime-notifier/internal/notifier"
 )
 
@@ -38,6 +39,8 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, nt notifier.Notifier) error
 		}
 	}()
 
+	tgtimeClient := api.NewOfficeTimeClient()
+
 	for {
 		m, err := r.ReadMessage(ctx)
 		if err != nil {
@@ -49,8 +52,14 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, nt notifier.Notifier) error
 		}
 		fmt.Printf("message at offset %d: %s = %s\n", m.Offset, string(m.Key), string(m.Value))
 
+		user, err := tgtimeClient.GetUserByMacAddress(string(m.Value))
+		if err != nil {
+			_ = fmt.Errorf("user lookup failed: %w", err)
+			continue
+		}
 		//_ = nt.SendWelcomeMessage(ctx, int64(telegramId)) // 343536263 // TODO: Handle error
-		err = nt.SendWelcomeMessage(ctx, 343536263)
+		//err = nt.SendWelcomeMessage(ctx, 343536263) // TODO: При запуске сервера сходить один раз в API и получить всех пользователй с их TgId
+		err = nt.SendWelcomeMessage(ctx, user.TelegramId)
 		if err != nil {
 			return fmt.Errorf("sending welcome message: %w", err)
 		}
