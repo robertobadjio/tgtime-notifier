@@ -54,7 +54,7 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, nt notifier.Notifier) error
 
 		userData, err := tgtimeClient.GetUserByMacAddress(string(m.Value))
 		if err != nil {
-			_ = fmt.Errorf("user lookup failed: %w", err)
+			fmt.Println("user lookup failed: ", err)
 			continue
 		}
 		if userData == nil {
