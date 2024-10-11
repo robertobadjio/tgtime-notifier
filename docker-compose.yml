@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   tgtime-notifier-app:
     image: ghcr.io/tgtime-notifier:master

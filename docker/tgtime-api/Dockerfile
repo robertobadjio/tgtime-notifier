@@ -1,4 +1,4 @@
-FROM busybox:1.35.0-uclibc as busybox
+FROM busybox:1.35.0-uclibc AS busybox
 
 FROM mockserver/mockserver:5.15.0
 
