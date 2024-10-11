@@ -24,7 +24,7 @@ func (t *TelegramNotifier) Info(
 
 	// TODO: Стратегия
 	if update.Message.Text == buttonWorkingTime {
-		// TODO: Получить mac address по tg id
+		fmt.Println("Handle working time", telegramId)
 		user, err := clientApi.GetUserByTelegramId(ctx, int64(telegramId))
 		if err != nil {
 			return fmt.Errorf("error getting user by telegram id: %w", err)
