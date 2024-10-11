@@ -8,17 +8,21 @@ import (
 )
 
 type Config struct {
-	BotToken          string
-	RouterAddress     string
-	RouterUserName    string
-	RouterPassword    string
-	WebHookPath       string
-	WebHookLink       string
-	ApiURL            string
-	ApiMasterEmail    string
-	ApiMasterPassword string
-	KafkaHost         string
-	KafkaPort         string
+	BotToken             string
+	RouterAddress        string
+	RouterUserName       string
+	RouterPassword       string
+	WebHookPath          string
+	WebHookLink          string
+	ApiURL               string
+	ApiMasterEmail       string
+	ApiMasterPassword    string
+	KafkaHost            string
+	KafkaPort            string
+	TgTimeAggregatorHost string
+	TgTimeAggregatorPort string
+	TgTimeApiHost        string
+	TgTimeApiPort        string
 }
 
 const projectDirName = "tgtime-notifier"
@@ -29,17 +33,21 @@ func init() {
 
 func New() *Config {
 	return &Config{
-		BotToken:          getEnv("BOT_TOKEN", ""),
-		RouterAddress:     getEnv("ROUTER_ADDRESS", ""),
-		RouterUserName:    getEnv("ROUTER_USER_NAME", ""),
-		RouterPassword:    getEnv("ROUTER_PASSWORD", ""),
-		WebHookPath:       getEnv("WEBHOOK_PATH", ""),
-		WebHookLink:       getEnv("WEBHOOK_LINK", ""),
-		ApiURL:            getEnv("API_URL", ""),
-		ApiMasterEmail:    getEnv("API_MASTER_EMAIL", ""),
-		ApiMasterPassword: getEnv("API_MASTER_PASSWORD", ""),
-		KafkaHost:         getEnv("KAFKA_HOST", ""),
-		KafkaPort:         getEnv("KAFKA_PORT", ""),
+		BotToken:             getEnv("BOT_TOKEN", ""),
+		RouterAddress:        getEnv("ROUTER_ADDRESS", ""),
+		RouterUserName:       getEnv("ROUTER_USER_NAME", ""),
+		RouterPassword:       getEnv("ROUTER_PASSWORD", ""),
+		WebHookPath:          getEnv("WEBHOOK_PATH", ""),
+		WebHookLink:          getEnv("WEBHOOK_LINK", ""),
+		ApiURL:               getEnv("API_URL", ""),
+		ApiMasterEmail:       getEnv("API_MASTER_EMAIL", ""),
+		ApiMasterPassword:    getEnv("API_MASTER_PASSWORD", ""),
+		KafkaHost:            getEnv("KAFKA_HOST", ""),
+		KafkaPort:            getEnv("KAFKA_PORT", ""),
+		TgTimeAggregatorHost: getEnv("TGTIME_AGGREGATOR_HOST", ""),
+		TgTimeAggregatorPort: getEnv("TGTIME_AGGREGATOR_PORT", ""),
+		TgTimeApiHost:        getEnv("TGTIME_API_HOST", ""),
+		TgTimeApiPort:        getEnv("TGTIME_API_PORT", ""),
 	}
 }
 

@@ -6,8 +6,8 @@ import (
 )
 
 type Break struct {
-	StartTime int64
-	EndTime   int64
+	BeginTime int64 `json:"beginTime"` // TODO: rename StartTime
+	EndTime   int64 `json:"endTime"`   // TODO: rename EndTime
 }
 
 type Notifier interface {

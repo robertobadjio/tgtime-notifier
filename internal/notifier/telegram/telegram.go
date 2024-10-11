@@ -84,7 +84,7 @@ func (t *TelegramNotifier) setKeyboard(message tgbotapi.MessageConfig) tgbotapi.
 func buildBreaks(breaks []*notifier.Break) []string {
 	var output []string
 	for _, item := range breaks {
-		beginTime := time.Unix(item.StartTime, 0)
+		beginTime := time.Unix(item.BeginTime, 0)
 		endTime := time.Unix(item.EndTime, 0)
 		output = append(
 			output,
