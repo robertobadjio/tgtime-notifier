@@ -2,13 +2,14 @@ package telegram
 
 import (
 	"context"
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	//"tgtime-notifier/internal/api"
 	//"tgtime-notifier/internal/notifier"
 	"time"
 )
 
-func (t *TelegramNotifier) Info(_ context.Context, update tgbotapi.Update) {
+func (t *TelegramNotifier) Info(_ context.Context, update tgbotapi.Update) error {
 	telegramId := update.Message.From.ID
 
 	// TODO: стратегия
@@ -84,13 +85,21 @@ func (t *TelegramNotifier) Info(_ context.Context, update tgbotapi.Update) {
 		message := tgbotapi.NewMessage(
 			int64(telegramId),
 			"Добро пожаловать. Используйте кнопки для получения информации")
-		t.bot.Send(t.setKeyboard(message))
+		_, err := t.bot.Send(t.setKeyboard(message))
+		if err != nil {
+			return fmt.Errorf("error sending telegram message - welcome message: %w", err)
+		}
 	} else {
 		message := tgbotapi.NewMessage(
 			int64(telegramId),
 			"Неизвестная команда")
-		t.bot.Send(t.setKeyboard(message))
+		_, err := t.bot.Send(t.setKeyboard(message))
+		if err != nil {
+			return fmt.Errorf("error sending telegram message - unknown command: %w", err)
+		}
 	}
+
+	return nil
 }
 
 func secondsToHM(seconds int) (int, int) {

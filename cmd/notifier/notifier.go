@@ -18,6 +18,7 @@ const CheckSecondsInOffice = 10
 func main() {
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 
 	_ = logger.Log("msg", "Start service")
 
@@ -36,7 +37,10 @@ func main() {
 		}
 	}()
 	for update := range updates {
-		tgNotifier.Info(ctx, update)
+		err := tgNotifier.Info(ctx, update)
+		if err != nil {
+			_ = logger.Log("telegram", "updates", "type", "info", "err", err)
+		}
 	}
 }
 
