@@ -8,7 +8,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/robertobadjio/tgtime-aggregator v1.0.2
-	github.com/robertobadjio/tgtime-api v0.0.2
+	github.com/robertobadjio/tgtime-api v0.0.3
 	github.com/segmentio/kafka-go v0.4.47
 	google.golang.org/grpc v1.64.1
 )
