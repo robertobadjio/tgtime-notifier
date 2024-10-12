@@ -25,8 +25,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/robertobadjio/tgtime-aggregator v1.0.2 h1:TiykIWsXSpzWrxy3HOFFzuaxqz3rTXeT/vF3UG2kxiA=
 github.com/robertobadjio/tgtime-aggregator v1.0.2/go.mod h1:/xsvgi2pwNqhEQFwmovLPnNuOqK3ScbHuqq7p7JSgGs=
-github.com/robertobadjio/tgtime-api v0.0.3 h1:CZWU5rHx4t08t0pl56Q6NLx5Zipk8vr2oFp9hoySrM0=
-github.com/robertobadjio/tgtime-api v0.0.3/go.mod h1:6ejGi503cqHnB4mkSLl+rkIjKuqaqiQTCHdobGj8lfE=
+github.com/robertobadjio/tgtime-api v0.0.4 h1:oyjcinV/1C8e6xSYafxFXt53A5JYd43Oxh34dUAGj9c=
+github.com/robertobadjio/tgtime-api v0.0.4/go.mod h1:6ejGi503cqHnB4mkSLl+rkIjKuqaqiQTCHdobGj8lfE=
 github.com/segmentio/kafka-go v0.4.47 h1:IqziR4pA3vrZq7YdRxaT3w1/5fvIH5qpCwstUanQQB0=
 github.com/segmentio/kafka-go v0.4.47/go.mod h1:HjF6XbOKh0Pjlkr5GVZxt6CsjjwnmhVOfURM5KMd8qg=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
