@@ -24,23 +24,22 @@ func (t *TelegramNotifier) Info(
 
 	// TODO: Стратегия
 	if update.Message.Text == buttonWorkingTime {
-		fmt.Println("Handle working time", telegramId)
 		user, err := clientApi.GetUserByTelegramId(ctx, int64(telegramId))
 		if err != nil {
 			return fmt.Errorf("error getting user by telegram id: %w", err)
 		}
 
-		fmt.Println(user.User.MacAddress, getNow().Format("2006-01-02"))
 		timeSummary, err := clientAggregator.GetTimeSummary(
 			ctx,
 			user.User.MacAddress,
 			getNow().Format("2006-01-02"),
 		)
-		fmt.Println(timeSummary)
+		if timeSummary == nil {
+			return fmt.Errorf("time summary not found mac address " + user.User.MacAddress + " date " + getNow().Format("2006-01-02"))
+		}
 		if err != nil {
 			return fmt.Errorf("error getting time summary: %w", err)
 		}
-		// TODO: Если timeSummary пустой
 
 		var messageTelegram tgbotapi.MessageConfig
 		if timeSummary.TimeSummary[0].SecondsStart == 0 {
