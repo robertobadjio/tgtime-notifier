@@ -41,7 +41,7 @@ func (t *TelegramNotifier) Info(
 			return fmt.Errorf("time summary not found mac address " + user.User.MacAddress + " date " + getNow().Format("2006-01-02"))
 		}
 
-		fmt.Println(timeSummary)
+		fmt.Println("AAAAAA", timeSummary)
 
 		var messageTelegram tgbotapi.MessageConfig
 		if timeSummary.TimeSummary[0].SecondsStart == 0 {
