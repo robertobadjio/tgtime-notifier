@@ -1,24 +1,16 @@
 package telegram
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-kit/kit/log"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"strings"
 	"tgtime-notifier/internal/config"
-	"tgtime-notifier/internal/notifier"
-	"time"
-)
-
-const (
-	buttonWorkingTime              = "⏳ Рабочее время"
-	buttonStatCurrentWorkingPeriod = "🗓 Статистика за рабочий период"
-	buttonStart                    = "/start"
 )
 
 type TelegramNotifier struct {
 	logger log.Logger
-	bot    *tgbotapi.BotAPI
+	Bot    *tgbotapi.BotAPI
 }
 
 func NewTelegramNotifier(logger log.Logger) *TelegramNotifier {
@@ -34,11 +26,11 @@ func NewTelegramNotifier(logger log.Logger) *TelegramNotifier {
 		panic(err)
 	}
 
-	return &TelegramNotifier{logger: logger, bot: bot}
+	return &TelegramNotifier{logger: logger, Bot: bot}
 }
 
-func (t *TelegramNotifier) GetBot() *tgbotapi.BotAPI {
-	return t.bot
+func (tn *TelegramNotifier) GetBot() *tgbotapi.BotAPI {
+	return tn.Bot
 }
 
 func initTelegramBot() (*tgbotapi.BotAPI, error) {
@@ -71,29 +63,33 @@ func setWebhook(bot *tgbotapi.BotAPI) error {
 }
 
 // Keyboard
-func (t *TelegramNotifier) setKeyboard(message tgbotapi.MessageConfig) tgbotapi.MessageConfig {
+func (*TelegramNotifier) SetKeyboard(message tgbotapi.MessageConfig) tgbotapi.MessageConfig {
 	message.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(buttonWorkingTime),
-			tgbotapi.NewKeyboardButton(buttonStatCurrentWorkingPeriod),
+			tgbotapi.NewKeyboardButton(string(buttonWorkingTime)),
+			tgbotapi.NewKeyboardButton(string(buttonStatCurrentWorkingPeriod)),
 		),
 	)
 	return message
 }
 
-func buildBreaks(breaks []*notifier.Break) []string {
-	var output []string
-	for _, item := range breaks {
-		beginTime := time.Unix(item.BeginTime, 0)
-		endTime := time.Unix(item.EndTime, 0)
-		output = append(
-			output,
-			fmt.Sprintf("%s - %s", beginTime.Format("15:04"), endTime.Format("15:04")))
-	}
+func (tn *TelegramNotifier) SendMessageCommand(ctx context.Context, update tgbotapi.Update) error {
+	command := NewCommand(MessageType(update.Message.Text), int64(update.Message.From.ID))
+	messageHandler := TypeMessage{Message: command}
+	stringMessage, err := messageHandler.Handle(ctx)
+	_, err = tn.Bot.Send(tn.SetKeyboard(tgbotapi.NewMessage(
+		int64(update.Message.From.ID),
+		stringMessage,
+	)))
 
-	return output
+	return fmt.Errorf("error send telegram message: %w", err)
 }
 
-func breaksToString(breaks []string) string {
-	return strings.Join(breaks, ", ")
+func (tn *TelegramNotifier) SendWelcomeMessage(_ context.Context, telegramId int64) error {
+	_, err := tn.Bot.Send(tn.SetKeyboard(tgbotapi.NewMessage(
+		telegramId,
+		"Вы пришли в офис",
+	)))
+
+	return fmt.Errorf("error send telegram welcome message: %w", err)
 }

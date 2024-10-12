@@ -1,5 +1,6 @@
 package telegram
 
+/*
 import (
 	"context"
 	"fmt"
@@ -28,4 +29,4 @@ func (t *TelegramNotifier) SendPreviousDayInfo(
 	}
 	t.bot.Send(t.setKeyboard(tgbotapi.NewMessage(telegramId, message)))
 	return nil
-}
+}*/

@@ -6,8 +6,6 @@ import (
 	_ "github.com/lib/pq"
 	"net/http"
 	"os"
-	"tgtime-notifier/internal/aggregator"
-	"tgtime-notifier/internal/api_pb"
 	"tgtime-notifier/internal/background"
 	"tgtime-notifier/internal/config"
 	kafkaLib "tgtime-notifier/internal/kafka"
@@ -39,10 +37,8 @@ func main() {
 		}
 	}()
 
-	aggregatorClient := aggregator.NewClient(*cfg, logger)
-	apiClient := api_pb.NewClient(*cfg, logger)
 	for update := range updates {
-		err := tgNotifier.Info(ctx, update, aggregatorClient, apiClient)
+		err := tgNotifier.SendMessageCommand(ctx, update)
 		if err != nil {
 			_ = logger.Log("telegram", "updates", "type", "info", "err", err)
 		}

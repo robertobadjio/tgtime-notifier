@@ -9,7 +9,7 @@ import (
 	"io"
 	"tgtime-notifier/internal/api_pb"
 	"tgtime-notifier/internal/config"
-	"tgtime-notifier/internal/notifier"
+	"tgtime-notifier/internal/notifier/telegram"
 )
 
 type Kafka struct {
@@ -32,7 +32,7 @@ func (k *Kafka) buildReader(topicName string) *kafkaLib.Reader {
 	})
 }
 
-func (k *Kafka) ConsumeInOffice(ctx context.Context, nt notifier.Notifier) error {
+func (k *Kafka) ConsumeInOffice(ctx context.Context, tn *telegram.TelegramNotifier) error {
 	r := k.buildReader(inOfficeTopic)
 	defer func() {
 		if err := r.Close(); err != nil {
@@ -63,18 +63,13 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, nt notifier.Notifier) error
 			continue
 		}
 
-		err = nt.SendWelcomeMessage(ctx, userResponse.User.TelegramId)
+		err = tn.SendWelcomeMessage(ctx, userResponse.User.TelegramId)
 		if err != nil {
-			return fmt.Errorf("sending welcome message: %w", err)
+			fmt.Println("error sending welcome message: ", err.Error())
 		}
 	}
 
 	return nil
-}
-
-func (k *Kafka) ConsumePreviousDayInfo(ctx context.Context, nt notifier.Notifier) error {
-	// TODO: !
-	panic("implement me")
 }
 
 func buildAddress(host, port string) string {

@@ -1,26 +1,29 @@
 package telegram
 
+/*
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"tgtime-notifier/internal/aggregator"
-	"tgtime-notifier/internal/api_pb"
 	"tgtime-notifier/internal/notifier"
-
-	//"tgtime-notifier/internal/api"
-	//"tgtime-notifier/internal/notifier"
+	"tgtime-notifier/internal/notifier/telegram/message"
 	"time"
 )
 
-func (t *TelegramNotifier) Info(
+func (tn *TelegramNotifier) Info(
 	ctx context.Context,
 	update tgbotapi.Update,
-	clientAggregator *aggregator.Client,
-	clientApi *api_pb.Client,
 ) error {
 	telegramId := update.Message.From.ID
+
+	factory := NewCommand(MessageType(update.Message.Text))
+
+	messageHandler := message.TypeMessage{factory}
+	err := messageHandler.Handle(ctx, tn, int64(telegramId))
+	if err != nil {
+		return fmt.Errorf("error sending telegram message - unknown command: %w", err)
+	}
 
 	// TODO: Стратегия
 	if update.Message.Text == buttonWorkingTime {
@@ -41,15 +44,13 @@ func (t *TelegramNotifier) Info(
 			return fmt.Errorf("time summary not found mac address " + user.User.MacAddress + " date " + getNow().Format("2006-01-02"))
 		}
 
-		fmt.Println("AAAAAA", timeSummaryResponse.TimeSummary)
-
 		var messageTelegram tgbotapi.MessageConfig
 		if timeSummaryResponse.TimeSummary[0].SecondsStart == 0 {
 			messageTelegram = tgbotapi.NewMessage(int64(telegramId), "Вы сегодня не были в офисе")
 		} else {
 			hours, minutes := secondsToHM(int(timeSummaryResponse.TimeSummary[0].Seconds))
 			beginTime := time.Unix(timeSummaryResponse.TimeSummary[0].SecondsStart, 0)
-			message := fmt.Sprintf(
+			mes := fmt.Sprintf(
 				"Сегодня Вы в офисе с %s\nУчтенное время %d ч. %d м.",
 				beginTime.Format("15:04"),
 				hours,
@@ -60,17 +61,17 @@ func (t *TelegramNotifier) Info(
 
 			// TODO: По GRPC отдавать сразу срез
 			_ = json.Unmarshal([]byte(timeSummaryResponse.TimeSummary[0].GetBreaksJson()), &breaksRaw)
-			breaks := breaksToString(buildBreaks(breaksRaw))
+			breaks := BreaksToString(BuildBreaks(breaksRaw))
 			if breaks != "" {
-				message += fmt.Sprintf("\nПерерывы %s", breaks)
+				mes += fmt.Sprintf("\nПерерывы %s", breaks)
 			}
-			messageTelegram = tgbotapi.NewMessage(int64(telegramId), message)
+			messageTelegram = tgbotapi.NewMessage(int64(telegramId), mes)
 		}
-		_, err = t.bot.Send(t.setKeyboard(messageTelegram))
+		_, err = t.Bot.Send(t.SetKeyboard(messageTelegram))
 		if err != nil {
 			return fmt.Errorf("error sending telegram message - working time: %w", err)
 		}
-	} else if update.Message.Text == buttonStatCurrentWorkingPeriod {
+	} else if MessageType(update.Message.Text) == buttonStatCurrentWorkingPeriod {
 		// TODO: Реализовать в tgtime-api метод получения идентификатора текущего периода
 		// Период и даты получили.
 		// TODO: С переодом нужно получить result.TotalWorkingHours, - рабочее колисчество часов в периоде
@@ -101,7 +102,7 @@ func (t *TelegramNotifier) Info(
 				result.TotalWorkingHours,
 			))
 
-		t.bot.Send(t.setKeyboard(message))*/
+		t.bot.Send(t.setKeyboard(message))
 	} else if update.Message.Text == buttonStart {
 		message := tgbotapi.NewMessage(
 			int64(telegramId),
@@ -122,7 +123,8 @@ func (t *TelegramNotifier) Info(
 
 	return nil
 }
-
+*/
+/*
 func secondsToHM(seconds int) (int, int) {
 	hours := seconds / 3600
 	minutes := (seconds / 60) - (hours * 60)
@@ -138,3 +140,4 @@ func getMoscowLocation() *time.Location {
 	moscowLocation, _ := time.LoadLocation("Europe/Moscow")
 	return moscowLocation
 }
+*/
