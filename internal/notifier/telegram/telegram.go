@@ -28,7 +28,7 @@ func NewTelegramNotifier(logger log.Logger) *TelegramNotifier {
 	}
 
 	_ = logger.Log("notifier", "telegram", "name", bot.Self.UserName, "msg", "authorized on account")
-
+	_ = logger.Log("notifier", "telegram", "name", bot.Self.UserName, "msg", "setting webhook...")
 	err = setWebhook(bot)
 	if err != nil {
 		panic(err)
@@ -58,14 +58,13 @@ func setWebhook(bot *tgbotapi.BotAPI) error {
 		return fmt.Errorf("set telegram webhook: %w", err)
 	}
 
-	//info, err := bot.GetWebhookInfo()
-	_, err = bot.GetWebhookInfo()
+	info, err := bot.GetWebhookInfo()
 	if err != nil {
 		return fmt.Errorf("get telegram webhook info: %w", err)
 	}
-	/*if info.LastErrorDate != 0 {
+	if info.LastErrorDate != 0 {
 		return fmt.Errorf("telegram callback failed: %s", info.LastErrorMessage)
-	}*/
+	}
 
 	return nil
 }
