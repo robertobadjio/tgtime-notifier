@@ -42,6 +42,8 @@ func (tc Client) GetUserByTelegramId(ctx context.Context, telegramId int64) (*pb
 		&pb.GetUserByTelegramIdRequest{TelegramId: telegramId},
 	)
 
+	fmt.Println(err)
+
 	if err != nil {
 		if s, ok := status.FromError(err); ok {
 			// Handle the error based on its status code
