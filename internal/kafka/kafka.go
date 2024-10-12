@@ -7,7 +7,8 @@ import (
 	"github.com/go-kit/kit/log"
 	kafkaLib "github.com/segmentio/kafka-go"
 	"io"
-	"tgtime-notifier/internal/api"
+	"tgtime-notifier/internal/api_pb"
+	"tgtime-notifier/internal/config"
 	"tgtime-notifier/internal/notifier"
 )
 
@@ -39,7 +40,7 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, nt notifier.Notifier) error
 		}
 	}()
 
-	tgtimeClient := api.NewOfficeTimeClient()
+	tgtimeClient := api_pb.NewClient(*config.New(), k.logger)
 
 	for {
 		m, err := r.ReadMessage(ctx)
@@ -50,24 +51,19 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, nt notifier.Notifier) error
 				return fmt.Errorf("reading message: %w", err)
 			}
 		}
-		fmt.Printf("message at offset %d: %s = %s\n", m.Offset, string(m.Key), string(m.Value))
-		fmt.Printf(string(m.Value))
+		//fmt.Printf("message at offset %d: %s = %s\n", m.Offset, string(m.Key), string(m.Value))
+		//fmt.Printf(string(m.Value))
 
-		userData, err := tgtimeClient.GetUserByMacAddress(string(m.Value))
+		userResponse, err := tgtimeClient.GetUserByMacAddress(ctx, string(m.Value))
 		if err != nil {
-			fmt.Println("user lookup failed: ", err)
-			continue
+			return fmt.Errorf("error getting user by mac address: %w", err)
 		}
-		if userData == nil {
-			fmt.Println("user not found")
+		if userResponse.User == nil {
+			fmt.Println("user not found with mac address " + string(m.Value))
 			continue
 		}
 
-		fmt.Println("user:", userData)
-
-		//_ = nt.SendWelcomeMessage(ctx, int64(telegramId)) // 343536263 // TODO: Handle error
-		//err = nt.SendWelcomeMessage(ctx, 343536263) // TODO: При запуске сервера сходить один раз в API и получить всех пользователй с их TgId
-		err = nt.SendWelcomeMessage(ctx, userData.User.TelegramId)
+		err = nt.SendWelcomeMessage(ctx, userResponse.User.TelegramId)
 		if err != nil {
 			return fmt.Errorf("sending welcome message: %w", err)
 		}
