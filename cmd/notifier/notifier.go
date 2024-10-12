@@ -33,7 +33,7 @@ func main() {
 
 	updates := tgNotifier.GetBot().ListenForWebhook("/" + cfg.WebHookPath)
 	go func() {
-		err := http.ListenAndServe(":1124", nil) // TODO: const
+		err := http.ListenAndServe(":8441", nil) // TODO: const
 		if err != nil {
 			_ = logger.Log("telegram", "updates", "type", "serve", "msg", err)
 		}
