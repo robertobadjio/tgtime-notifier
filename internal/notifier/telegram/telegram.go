@@ -58,13 +58,14 @@ func setWebhook(bot *tgbotapi.BotAPI) error {
 		return fmt.Errorf("set telegram webhook: %w", err)
 	}
 
-	info, err := bot.GetWebhookInfo()
+	//info, err := bot.GetWebhookInfo()
+	_, err = bot.GetWebhookInfo()
 	if err != nil {
 		return fmt.Errorf("get telegram webhook info: %w", err)
 	}
-	if info.LastErrorDate != 0 {
+	/*if info.LastErrorDate != 0 {
 		return fmt.Errorf("telegram callback failed: %s", info.LastErrorMessage)
-	}
+	}*/
 
 	return nil
 }
