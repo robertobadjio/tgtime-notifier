@@ -27,7 +27,7 @@ func (tc Client) GetUserByTelegramId(ctx context.Context, telegramId int64) (*pb
 		tc.buildAddress(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
-	fmt.Println("AAAAA", tc.buildAddress())
+
 	if err != nil {
 		return nil, fmt.Errorf("could not connect: %v", err)
 	}

@@ -24,8 +24,6 @@ type errorResponse struct {
 	Data interface{} `json:"data"`
 }*/
 
-var authData Tokens
-
 func NewOfficeTimeClient() *officeTimeClient {
 	cfg := config.New()
 	return &officeTimeClient{
