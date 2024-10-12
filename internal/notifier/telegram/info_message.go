@@ -29,7 +29,7 @@ func (t *TelegramNotifier) Info(
 			return fmt.Errorf("error getting user by telegram id: %w", err)
 		}
 
-		timeSummary, err := clientAggregator.GetTimeSummary(
+		timeSummaryResponse, err := clientAggregator.GetTimeSummary(
 			ctx,
 			user.User.MacAddress,
 			getNow().Format("2006-01-02"),
@@ -37,18 +37,18 @@ func (t *TelegramNotifier) Info(
 		if err != nil {
 			return fmt.Errorf("error getting time summary: %w", err)
 		}
-		if timeSummary == nil {
+		if len(timeSummaryResponse.TimeSummary) == 0 {
 			return fmt.Errorf("time summary not found mac address " + user.User.MacAddress + " date " + getNow().Format("2006-01-02"))
 		}
 
-		fmt.Println("AAAAAA", timeSummary)
+		fmt.Println("AAAAAA", timeSummaryResponse.TimeSummary)
 
 		var messageTelegram tgbotapi.MessageConfig
-		if timeSummary.TimeSummary[0].SecondsStart == 0 {
+		if timeSummaryResponse.TimeSummary[0].SecondsStart == 0 {
 			messageTelegram = tgbotapi.NewMessage(int64(telegramId), "Вы сегодня не были в офисе")
 		} else {
-			hours, minutes := secondsToHM(int(timeSummary.TimeSummary[0].Seconds))
-			beginTime := time.Unix(timeSummary.TimeSummary[0].SecondsStart, 0)
+			hours, minutes := secondsToHM(int(timeSummaryResponse.TimeSummary[0].Seconds))
+			beginTime := time.Unix(timeSummaryResponse.TimeSummary[0].SecondsStart, 0)
 			message := fmt.Sprintf(
 				"Сегодня Вы в офисе с %s\nУчтенное время %d ч. %d м.",
 				beginTime.Format("15:04"),
@@ -59,7 +59,7 @@ func (t *TelegramNotifier) Info(
 			var breaksRaw []*notifier.Break
 
 			// TODO: По GRPC отдавать сразу срез
-			_ = json.Unmarshal([]byte(timeSummary.TimeSummary[0].GetBreaksJson()), &breaksRaw)
+			_ = json.Unmarshal([]byte(timeSummaryResponse.TimeSummary[0].GetBreaksJson()), &breaksRaw)
 			breaks := breaksToString(buildBreaks(breaksRaw))
 			if breaks != "" {
 				message += fmt.Sprintf("\nПерерывы %s", breaks)
