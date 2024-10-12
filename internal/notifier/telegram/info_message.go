@@ -30,14 +30,17 @@ func (t *TelegramNotifier) Info(
 			return fmt.Errorf("error getting user by telegram id: %w", err)
 		}
 
+		fmt.Println(user.User.MacAddress, getNow().Format("2006-01-02"))
 		timeSummary, err := clientAggregator.GetTimeSummary(
 			ctx,
 			user.User.MacAddress,
 			getNow().Format("2006-01-02"),
 		)
+		fmt.Println(timeSummary)
 		if err != nil {
 			return fmt.Errorf("error getting time summary: %w", err)
 		}
+		// TODO: Если timeSummary пустой
 
 		var messageTelegram tgbotapi.MessageConfig
 		if timeSummary.TimeSummary[0].SecondsStart == 0 {
@@ -67,7 +70,7 @@ func (t *TelegramNotifier) Info(
 			return fmt.Errorf("error sending telegram message - working time: %w", err)
 		}
 	} else if update.Message.Text == buttonStatCurrentWorkingPeriod {
-		// TODO: Реализовать в tgtime-api метод полчения идентификатора текущего периода
+		// TODO: Реализовать в tgtime-api метод получения идентификатора текущего периода
 		// Период и даты получили.
 		// TODO: С переодом нужно получить result.TotalWorkingHours, - рабочее колисчество часов в периоде
 		// StartWorkingDate, err := time.Parse(time.RFC3339, period.BeginDate)
