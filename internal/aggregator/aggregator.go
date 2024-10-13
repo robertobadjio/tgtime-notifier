@@ -24,7 +24,7 @@ type Client struct {
 // NewClient Конструктор gRPC-клиента для подключения к сервису Агрегатор
 func NewClient(cfg config.Config, logger log.Logger) *Client {
 	conn, _ := grpc.NewClient(
-		buildAddress(cfg.TgTimeAPIHost, cfg.TgTimeAPIPort),
+		buildAddress(cfg.TgTimeAggregatorHost, cfg.TgTimeAggregatorPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 
