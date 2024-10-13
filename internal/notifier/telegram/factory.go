@@ -17,12 +17,16 @@ const (
 	buttonStart                    MessageType = "/start"
 )
 
+const welcome MessageType = "welcome"
+
 func NewCommand(t MessageType, telegramId int64) Context {
 	switch t {
 	case buttonStart:
 		return command.StartCommand{}
 	case buttonWorkingTime:
 		return command.WorkingTimeCommand{TelegramId: telegramId}
+	case welcome:
+		return command.WelcomeCommand{}
 	default:
 		return command.UnknownCommand{}
 	}

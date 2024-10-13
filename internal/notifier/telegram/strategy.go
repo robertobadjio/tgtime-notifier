@@ -5,7 +5,7 @@ import (
 )
 
 type Context interface {
-	SendMessage(ctx context.Context) (string, error)
+	GetMessage(ctx context.Context) (string, error)
 }
 
 type TypeMessage struct {
@@ -13,5 +13,5 @@ type TypeMessage struct {
 }
 
 func (tm *TypeMessage) Handle(ctx context.Context) (string, error) {
-	return tm.Message.SendMessage(ctx)
+	return tm.Message.GetMessage(ctx)
 }

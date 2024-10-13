@@ -19,10 +19,10 @@ type WorkingTimeCommand struct {
 
 type Break struct {
 	BeginTime int64 `json:"beginTime"` // TODO: rename StartTime
-	EndTime   int64 `json:"endTime"`   // TODO: rename EndTime
+	EndTime   int64 `json:"endTime"`
 }
 
-func (wtc WorkingTimeCommand) SendMessage(ctx context.Context) (string, error) {
+func (wtc WorkingTimeCommand) GetMessage(ctx context.Context) (string, error) {
 	cfg := config.New()
 
 	var logger log.Logger

@@ -74,6 +74,9 @@ func (*TelegramNotifier) SetKeyboard(message tgbotapi.MessageConfig) tgbotapi.Me
 }
 
 func (tn *TelegramNotifier) SendMessageCommand(ctx context.Context, update tgbotapi.Update) error {
+	if update.Message == nil {
+		return fmt.Errorf("telegram message is empty")
+	}
 	command := NewCommand(MessageType(update.Message.Text), int64(update.Message.From.ID))
 	messageHandler := TypeMessage{Message: command}
 	stringMessage, err := messageHandler.Handle(ctx)
@@ -85,10 +88,12 @@ func (tn *TelegramNotifier) SendMessageCommand(ctx context.Context, update tgbot
 	return fmt.Errorf("error send telegram message: %w", err)
 }
 
-func (tn *TelegramNotifier) SendWelcomeMessage(_ context.Context, telegramId int64) error {
-	_, err := tn.Bot.Send(tn.SetKeyboard(tgbotapi.NewMessage(
+func (tn *TelegramNotifier) SendWelcomeMessage(ctx context.Context, telegramId int64) error {
+	command := NewCommand(welcome, telegramId)
+	stringMessage, err := command.GetMessage(ctx)
+	_, err = tn.Bot.Send(tn.SetKeyboard(tgbotapi.NewMessage(
 		telegramId,
-		"Вы пришли в офис",
+		stringMessage,
 	)))
 
 	return fmt.Errorf("error send telegram welcome message: %w", err)
