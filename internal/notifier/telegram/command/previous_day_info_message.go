@@ -14,7 +14,7 @@ func (t *TelegramNotifier) SendPreviousDayInfo(
 	telegramId int64,
 	startTime, endTime time.Time,
 	hours, minutes int,
-	breaks []*notifier.Break,
+	breaks []*notifier.timeBreak,
 ) error {
 	breaksString := breaksToString(buildBreaks(breaks))
 	message := fmt.Sprintf(

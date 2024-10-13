@@ -2,18 +2,19 @@ package main
 
 import (
 	"context"
-	"github.com/go-kit/kit/log"
-	_ "github.com/lib/pq"
 	"net/http"
 	"os"
-	"tgtime-notifier/internal/background"
-	"tgtime-notifier/internal/config"
-	kafkaLib "tgtime-notifier/internal/kafka"
-	"tgtime-notifier/internal/notifier/telegram"
 	"time"
+
+	"github.com/go-kit/kit/log"
+	_ "github.com/lib/pq"
+	"github.com/robertobadjio/tgtime-notifier/internal/background"
+	"github.com/robertobadjio/tgtime-notifier/internal/config"
+	kafkaLib "github.com/robertobadjio/tgtime-notifier/internal/kafka"
+	"github.com/robertobadjio/tgtime-notifier/internal/notifier/telegram"
 )
 
-const CheckSecondsInOffice = 10
+const сheckSecondsInOffice = 10
 
 func main() {
 	var logger log.Logger
@@ -31,6 +32,7 @@ func main() {
 
 	updates := tgNotifier.GetBot().ListenForWebhook("/" + cfg.WebHookPath)
 	go func() {
+		// TODO: timeouts https://kovardin.ru/articles/go/rukovodstvo-po-nethttp-taimautam-v-go/
 		err := http.ListenAndServe(":8441", nil) // TODO: const
 		if err != nil {
 			_ = logger.Log("telegram", "updates", "type", "serve", "msg", err)
@@ -49,7 +51,7 @@ func startCheckInOffice(
 	ctx context.Context,
 	cfg *config.Config,
 	logger log.Logger,
-	tgNotifier *telegram.TelegramNotifier,
+	tgNotifier *telegram.Notifier,
 ) {
 	f := func() {
 		kafka := kafkaLib.NewKafka(logger, cfg.KafkaHost, cfg.KafkaPort)
@@ -58,7 +60,7 @@ func startCheckInOffice(
 			_ = logger.Log("kafka", "consume", "type", "in office message", "msg", err)
 		}
 	}
-	bc := background.NewBackground(time.Duration(CheckSecondsInOffice)*time.Second, f)
+	bc := background.NewBackground(time.Duration(сheckSecondsInOffice)*time.Second, f)
 	bc.Start()
 }
 

@@ -1,12 +1,54 @@
 services:
   tgtime-notifier-app:
-    image: ghcr.io/tgtime-notifier:master
     build:
       context: .
       dockerfile: ./docker/app/Dockerfile
     container_name: tgtime-notifier-app
     ports:
       - "1122:8080"
+    networks:
+      - tgtime-notifier-network
+    depends_on:
+      tgtime-api:
+        condition: service_healthy
+  tgtime-api:
+    build:
+      context: .
+      dockerfile: ./docker/tgtime-api/Dockerfile
+    ports:
+      - "1080:1080"
+    environment:
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/initializerJson.json
+      MOCKSERVER_LOG_LEVEL: INFO
+      MOCKSERVER_PROPERTY_FILE: /config/mockserver.properties
+    volumes:
+      - ./docker/tgtime-api/config:/config
+      - ./docker/tgtime-api/config/mockserver.properties:/config/mockserver.properties
+    networks:
+      - tgtime-notifier-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1080/liveness/probe"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=${ZOOKEEPER_PORT}
+    networks:
+      - tgtime-notifier-network
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:${ZOOKEEPER_PORT}
+      - KAFKA_LOG_RETENTION_MS=10000
+      - KAFKA_CLEANUP_POLICY=delete
+      - KAFKA_CLEANUP_ENABLE=true
+      - KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS=5000
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:${ZOOKEEPER_PORT}
     networks:
       - tgtime-notifier-network
 

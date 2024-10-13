@@ -3,17 +3,20 @@ package telegram
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-kit/kit/log"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"tgtime-notifier/internal/config"
+	"github.com/robertobadjio/tgtime-notifier/internal/config"
 )
 
-type TelegramNotifier struct {
+// Notifier Telegram-нотификатор
+type Notifier struct {
 	logger log.Logger
 	Bot    *tgbotapi.BotAPI
 }
 
-func NewTelegramNotifier(logger log.Logger) *TelegramNotifier {
+// NewTelegramNotifier Конструктор для создания Telegram-нотификатора
+func NewTelegramNotifier(logger log.Logger) *Notifier {
 	bot, err := initTelegramBot()
 	if err != nil {
 		panic(err)
@@ -26,10 +29,11 @@ func NewTelegramNotifier(logger log.Logger) *TelegramNotifier {
 		panic(err)
 	}
 
-	return &TelegramNotifier{logger: logger, Bot: bot}
+	return &Notifier{logger: logger, Bot: bot}
 }
 
-func (tn *TelegramNotifier) GetBot() *tgbotapi.BotAPI {
+// GetBot Получение Telegram Bot API
+func (tn *Notifier) GetBot() *tgbotapi.BotAPI {
 	return tn.Bot
 }
 
@@ -62,8 +66,7 @@ func setWebhook(bot *tgbotapi.BotAPI) error {
 	return nil
 }
 
-// Keyboard
-func (*TelegramNotifier) SetKeyboard(message tgbotapi.MessageConfig) tgbotapi.MessageConfig {
+func (*Notifier) setKeyboard(message tgbotapi.MessageConfig) tgbotapi.MessageConfig {
 	message.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(string(buttonWorkingTime)),
@@ -73,28 +76,43 @@ func (*TelegramNotifier) SetKeyboard(message tgbotapi.MessageConfig) tgbotapi.Me
 	return message
 }
 
-func (tn *TelegramNotifier) SendMessageCommand(ctx context.Context, update tgbotapi.Update) error {
+// SendMessageCommand Метод для отправки сообщения в ответ на команду пользователя
+func (tn *Notifier) SendMessageCommand(ctx context.Context, update tgbotapi.Update) error {
 	if update.Message == nil {
 		return fmt.Errorf("telegram message is empty")
 	}
+
 	command := NewCommand(MessageType(update.Message.Text), int64(update.Message.From.ID))
-	messageHandler := TypeMessage{Message: command}
-	stringMessage, err := messageHandler.Handle(ctx)
-	_, err = tn.Bot.Send(tn.SetKeyboard(tgbotapi.NewMessage(
+	stringMessage, err := command.GetMessage(ctx)
+	if err != nil {
+		return fmt.Errorf("error getting text message: %w", err)
+	}
+	_, err = tn.Bot.Send(tn.setKeyboard(tgbotapi.NewMessage(
 		int64(update.Message.From.ID),
 		stringMessage,
 	)))
 
-	return fmt.Errorf("error send telegram message: %w", err)
+	if err != nil {
+		return fmt.Errorf("error send telegram message: %w", err)
+	}
+
+	return nil
 }
 
-func (tn *TelegramNotifier) SendWelcomeMessage(ctx context.Context, telegramId int64) error {
-	command := NewCommand(welcome, telegramId)
+// SendWelcomeMessage Метод отправки приветственного сообщения по приходу в офис / на работу.
+func (tn *Notifier) SendWelcomeMessage(ctx context.Context, telegramID int64) error {
+	command := NewCommand(welcome, telegramID)
 	stringMessage, err := command.GetMessage(ctx)
-	_, err = tn.Bot.Send(tn.SetKeyboard(tgbotapi.NewMessage(
-		telegramId,
+	if err != nil {
+		return fmt.Errorf("error send welcome message: %w", err)
+	}
+	_, err = tn.Bot.Send(tn.setKeyboard(tgbotapi.NewMessage(
+		telegramID,
 		stringMessage,
 	)))
+	if err != nil {
+		return fmt.Errorf("error send welcome message: %w", err)
+	}
 
-	return fmt.Errorf("error send telegram welcome message: %w", err)
+	return nil
 }

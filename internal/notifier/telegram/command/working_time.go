@@ -4,24 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-kit/kit/log"
 	"os"
 	"strings"
-	"tgtime-notifier/internal/aggregator"
-	"tgtime-notifier/internal/api_pb"
-	"tgtime-notifier/internal/config"
 	"time"
+
+	"github.com/go-kit/kit/log"
+	"github.com/robertobadjio/tgtime-notifier/internal/aggregator"
+	"github.com/robertobadjio/tgtime-notifier/internal/api_pb"
+	"github.com/robertobadjio/tgtime-notifier/internal/config"
 )
 
+// WorkingTimeCommand Команда "Рабочее время"
 type WorkingTimeCommand struct {
-	TelegramId int64
+	TelegramID int64
 }
 
-type Break struct {
+type timeBreak struct {
 	BeginTime int64 `json:"beginTime"` // TODO: rename StartTime
 	EndTime   int64 `json:"endTime"`
 }
 
+// GetMessage Метод получения текста команды
 func (wtc WorkingTimeCommand) GetMessage(ctx context.Context) (string, error) {
 	cfg := config.New()
 
@@ -31,7 +34,7 @@ func (wtc WorkingTimeCommand) GetMessage(ctx context.Context) (string, error) {
 
 	aggregatorClient := aggregator.NewClient(*cfg, logger)
 	apiClient := api_pb.NewClient(*cfg, logger)
-	user, err := apiClient.GetUserByTelegramId(ctx, wtc.TelegramId)
+	user, err := apiClient.GetUserByTelegramID(ctx, wtc.TelegramID)
 	if err != nil {
 		return "", fmt.Errorf("error getting user by telegram id: %w", err)
 	}
@@ -45,32 +48,31 @@ func (wtc WorkingTimeCommand) GetMessage(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("error getting time summary: %w", err)
 	}
 	if len(timeSummaryResponse.TimeSummary) == 0 {
-		return "", fmt.Errorf("time summary not found mac address " + user.User.MacAddress + " date " + getNow().Format("2006-01-02"))
+		return "", fmt.Errorf("time summary not found")
 	}
 
 	if timeSummaryResponse.TimeSummary[0].SecondsStart == 0 {
 		return "Вы сегодня не были в офисе", nil
-	} else {
-		hours, minutes := secondsToHM(int(timeSummaryResponse.TimeSummary[0].Seconds))
-		beginTime := time.Unix(timeSummaryResponse.TimeSummary[0].SecondsStart, 0)
-		mes := fmt.Sprintf(
-			"Сегодня Вы в офисе с %s\nУчтенное время %d ч. %d м.",
-			beginTime.Format("15:04"),
-			hours,
-			minutes,
-		)
-
-		var breaksRaw []*Break
-
-		// TODO: По GRPC отдавать сразу срез
-		_ = json.Unmarshal([]byte(timeSummaryResponse.TimeSummary[0].GetBreaksJson()), &breaksRaw)
-		breaks := breaksToString(buildBreaks(breaksRaw))
-		if breaks != "" {
-			mes += fmt.Sprintf("\nПерерывы %s", breaks)
-		}
-
-		return mes, nil
 	}
+
+	hours, minutes := secondsToHM(int(timeSummaryResponse.TimeSummary[0].Seconds))
+	beginTime := time.Unix(timeSummaryResponse.TimeSummary[0].SecondsStart, 0)
+	mes := fmt.Sprintf(
+		"Сегодня Вы в офисе с %s\nУчтенное время %d ч. %d м.",
+		beginTime.Format("15:04"),
+		hours,
+		minutes,
+	)
+
+	// TODO: По GRPC отдавать сразу срез
+	var breaksRaw []*timeBreak
+	_ = json.Unmarshal([]byte(timeSummaryResponse.TimeSummary[0].GetBreaksJson()), &breaksRaw)
+	breaks := breaksToString(buildBreaks(breaksRaw))
+	if breaks != "" {
+		mes += fmt.Sprintf("\nПерерывы %s", breaks)
+	}
+
+	return mes, nil
 }
 
 func secondsToHM(seconds int) (int, int) {
@@ -89,7 +91,7 @@ func getMoscowLocation() *time.Location {
 	return moscowLocation
 }
 
-func buildBreaks(breaks []*Break) []string {
+func buildBreaks(breaks []*timeBreak) []string {
 	var output []string
 	for _, item := range breaks {
 		beginTime := time.Unix(item.BeginTime, 0)

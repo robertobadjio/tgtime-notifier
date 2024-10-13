@@ -1,12 +1,14 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"regexp"
+
+	"github.com/joho/godotenv"
 )
 
+// Config Конфига приложения
 type Config struct {
 	BotToken             string
 	RouterAddress        string
@@ -14,15 +16,15 @@ type Config struct {
 	RouterPassword       string
 	WebHookPath          string
 	WebHookLink          string
-	ApiURL               string
-	ApiMasterEmail       string
-	ApiMasterPassword    string
+	APIURL               string
+	APIMasterEmail       string
+	APIMasterPassword    string
 	KafkaHost            string
 	KafkaPort            string
 	TgTimeAggregatorHost string
 	TgTimeAggregatorPort string
-	TgTimeApiHost        string
-	TgTimeApiPort        string
+	TgTimeAPIHost        string
+	TgTimeAPIPort        string
 }
 
 const projectDirName = "tgtime-notifier"
@@ -31,6 +33,7 @@ func init() {
 	loadEnv()
 }
 
+// New Конструктор конфига приложения
 func New() *Config {
 	return &Config{
 		BotToken:             getEnv("BOT_TOKEN", ""),
@@ -39,15 +42,15 @@ func New() *Config {
 		RouterPassword:       getEnv("ROUTER_PASSWORD", ""),
 		WebHookPath:          getEnv("WEBHOOK_PATH", ""),
 		WebHookLink:          getEnv("WEBHOOK_LINK", ""),
-		ApiURL:               getEnv("API_URL", ""),
-		ApiMasterEmail:       getEnv("API_MASTER_EMAIL", ""),
-		ApiMasterPassword:    getEnv("API_MASTER_PASSWORD", ""),
+		APIURL:               getEnv("API_URL", ""),
+		APIMasterEmail:       getEnv("API_MASTER_EMAIL", ""),
+		APIMasterPassword:    getEnv("API_MASTER_PASSWORD", ""),
 		KafkaHost:            getEnv("KAFKA_HOST", ""),
 		KafkaPort:            getEnv("KAFKA_PORT", ""),
 		TgTimeAggregatorHost: getEnv("TGTIME_AGGREGATOR_HOST", ""),
 		TgTimeAggregatorPort: getEnv("TGTIME_AGGREGATOR_PORT", ""),
-		TgTimeApiHost:        getEnv("TGTIME_API_HOST", ""),
-		TgTimeApiPort:        getEnv("TGTIME_API_PORT", ""),
+		TgTimeAPIHost:        getEnv("TGTIME_API_HOST", ""),
+		TgTimeAPIPort:        getEnv("TGTIME_API_PORT", ""),
 	}
 }
 

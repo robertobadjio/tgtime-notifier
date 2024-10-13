@@ -1,5 +1,2 @@
 .idea
 .env
-config/config.yaml
-
-deploy/deploy.config
