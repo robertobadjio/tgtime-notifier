@@ -32,8 +32,13 @@ func main() {
 
 	updates := tgNotifier.GetBot().ListenForWebhook("/" + cfg.WebHookPath)
 	go func() {
+		srv := &http.Server{
+			Addr:         ":8441", // TODO: const
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
 		// TODO: timeouts https://kovardin.ru/articles/go/rukovodstvo-po-nethttp-taimautam-v-go/
-		err := http.ListenAndServe(":8441", nil) // TODO: const
+		err := srv.ListenAndServe()
 		if err != nil {
 			_ = logger.Log("telegram", "updates", "type", "serve", "msg", err)
 		}
