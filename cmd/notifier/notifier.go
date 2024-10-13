@@ -14,7 +14,7 @@ import (
 	"github.com/robertobadjio/tgtime-notifier/internal/notifier/telegram"
 )
 
-const сheckSecondsInOffice = 10
+const checkSecondsInOffice = 10
 
 func main() {
 	var logger log.Logger
@@ -65,7 +65,7 @@ func startCheckInOffice(
 			_ = logger.Log("kafka", "consume", "type", "in office message", "msg", err)
 		}
 	}
-	bc := background.NewBackground(time.Duration(сheckSecondsInOffice)*time.Second, f)
+	bc := background.NewBackground(time.Duration(checkSecondsInOffice)*time.Second, f)
 	bc.Start()
 }
 
