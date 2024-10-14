@@ -28,27 +28,21 @@ func main() {
 	ctx := context.Background()
 	tgNotifier := telegram.NewTelegramNotifier(logger)
 
-	//startCheckInOffice(ctx, cfg, logger, tgNotifier)
+	startCheckInOffice(ctx, cfg, logger, tgNotifier)
 	//startCheckPreviousDayInfo()
 
 	updates := tgNotifier.GetBot().ListenForWebhook("/" + cfg.WebHookPath)
 	go func() {
-		err := http.ListenAndServe(":8441", nil)
-		if err != nil {
-			_ = logger.Log("telegram", "updates", "type", "serve", "msg", err)
-		}
-	}()
-	/*go func() {
 		srv := &http.Server{
-			Addr: ":8441", // TODO: const
-			//ReadTimeout:  5 * time.Second,
-			//WriteTimeout: 10 * time.Second,
+			Addr:         ":8441", // TODO: const
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
 		}
 		err := srv.ListenAndServe()
 		if err != nil {
 			_ = logger.Log("telegram", "updates", "type", "serve", "msg", err)
 		}
-	}()*/
+	}()
 
 	for update := range updates {
 		fmt.Printf("%+v\n", update)

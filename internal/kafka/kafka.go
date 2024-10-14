@@ -57,6 +57,7 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, tn *telegram.Notifier) erro
 			continue
 		}
 
+		fmt.Printf("%+v\n", userResponse.User.TelegramId)
 		err = tn.SendWelcomeMessage(ctx, userResponse.User.TelegramId)
 		if err != nil {
 			fmt.Println("error sending welcome message: ", err.Error())

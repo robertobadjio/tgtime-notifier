@@ -23,11 +23,11 @@ func NewTelegramNotifier(logger log.Logger) *Notifier {
 	}
 
 	_ = logger.Log("notifier", "telegram", "name", bot.Self.UserName, "msg", "authorized on account")
-	/*_ = logger.Log("notifier", "telegram", "name", bot.Self.UserName, "msg", "setting webhook...")
+	_ = logger.Log("notifier", "telegram", "name", bot.Self.UserName, "msg", "setting webhook...")
 	err = setWebhook(bot)
 	if err != nil {
 		panic(err)
-	}*/
+	}
 
 	return &Notifier{logger: logger, Bot: bot}
 }
