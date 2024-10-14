@@ -27,8 +27,8 @@ func main() {
 	ctx := context.Background()
 	tgNotifier := telegram.NewTelegramNotifier(logger)
 
-	startCheckInOffice(ctx, cfg, logger, tgNotifier)
-	startCheckPreviousDayInfo()
+	//startCheckInOffice(ctx, cfg, logger, tgNotifier)
+	//startCheckPreviousDayInfo()
 
 	updates := tgNotifier.GetBot().ListenForWebhook("/" + cfg.WebHookPath)
 	go func() {
