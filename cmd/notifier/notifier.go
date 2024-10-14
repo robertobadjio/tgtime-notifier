@@ -32,6 +32,12 @@ func main() {
 
 	updates := tgNotifier.GetBot().ListenForWebhook("/" + cfg.WebHookPath)
 	go func() {
+		err := http.ListenAndServe(":8441", nil)
+		if err != nil {
+			_ = logger.Log("telegram", "updates", "type", "serve", "msg", err)
+		}
+	}()
+	/*go func() {
 		srv := &http.Server{
 			Addr: ":8441", // TODO: const
 			//ReadTimeout:  5 * time.Second,
@@ -41,7 +47,7 @@ func main() {
 		if err != nil {
 			_ = logger.Log("telegram", "updates", "type", "serve", "msg", err)
 		}
-	}()
+	}()*/
 
 	for update := range updates {
 		if update.Message == nil {
