@@ -78,10 +78,6 @@ func (*Notifier) setKeyboard(message tgbotapi.MessageConfig) tgbotapi.MessageCon
 
 // SendMessageCommand Метод для отправки сообщения в ответ на команду пользователя
 func (tn *Notifier) SendMessageCommand(ctx context.Context, update tgbotapi.Update) error {
-	if update.Message == nil {
-		return fmt.Errorf("telegram message is empty")
-	}
-
 	command := NewCommand(MessageType(update.Message.Text), int64(update.Message.From.ID))
 	stringMessage, err := command.GetMessage(ctx)
 	if err != nil {

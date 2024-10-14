@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"net/http"
 	"os"
 	"time"
 
@@ -30,10 +30,8 @@ func main() {
 	startCheckInOffice(ctx, cfg, logger, tgNotifier)
 	startCheckPreviousDayInfo()
 
-	u := tgbotapi.NewUpdate(0)
-
-	updates, _ := tgNotifier.GetBot().GetUpdatesChan(u)
-	/*go func() {
+	updates := tgNotifier.GetBot().ListenForWebhook("/" + cfg.WebHookPath)
+	go func() {
 		srv := &http.Server{
 			Addr:         ":8441", // TODO: const
 			ReadTimeout:  5 * time.Second,
@@ -43,7 +41,7 @@ func main() {
 		if err != nil {
 			_ = logger.Log("telegram", "updates", "type", "serve", "msg", err)
 		}
-	}()*/
+	}()
 
 	for update := range updates {
 		if update.Message == nil {
