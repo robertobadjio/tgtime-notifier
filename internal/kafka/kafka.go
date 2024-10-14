@@ -50,10 +50,7 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, tn *telegram.Notifier) erro
 
 		userResponse, err := tgtimeClient.GetUserByMacAddress(ctx, string(m.Value))
 		if err != nil {
-			return fmt.Errorf("error getting user by mac address: %w", err)
-		}
-		if userResponse.User == nil {
-			fmt.Println("user not found with mac address " + string(m.Value))
+			fmt.Println("error getting user by mac address " + string(m.Value))
 			continue
 		}
 
