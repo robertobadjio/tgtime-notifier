@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -50,6 +51,7 @@ func main() {
 	}()*/
 
 	for update := range updates {
+		fmt.Printf("%+v\n", update)
 		if update.Message == nil {
 			continue
 		}
