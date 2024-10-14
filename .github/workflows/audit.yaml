@@ -24,10 +24,6 @@ jobs:
               with:
                 go-version: ${{ matrix.go-version }}
 
-            #- name: Add config
-              #run: |
-                # touch ./.env
-
             - name: Verify dependencies
               run: go mod verify
 
