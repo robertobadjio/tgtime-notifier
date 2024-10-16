@@ -3,6 +3,8 @@ package api_pb
 import (
 	"context"
 	"fmt"
+	"net"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -38,7 +40,7 @@ func (tc Client) GetUserByTelegramID(
 	telegramID int64,
 ) (*pbapiv1.GetUserByTelegramIdResponse, error) {
 	conn, _ := grpc.NewClient(
-		buildAddress(tc.port, tc.host),
+		buildAddress(tc.host, tc.port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 
@@ -48,16 +50,13 @@ func (tc Client) GetUserByTelegramID(
 
 	client := pbapiv1.NewApiClient(conn)
 
-	//ctx, cancel := context.WithTimeout(ctx, time.Second)
-	//defer cancel()
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 
-	fmt.Println(buildAddress(tc.port, tc.host))
-	fmt.Println(telegramID)
 	user, err := client.GetUserByTelegramId(
 		ctx,
 		&pbapiv1.GetUserByTelegramIdRequest{TelegramId: telegramID},
 	)
-	fmt.Println(user)
 	if err != nil {
 		return nil, handleError(ctx, err)
 	}
@@ -71,7 +70,7 @@ func (tc Client) GetUserByMacAddress(
 	macAddress string,
 ) (*pbapiv1.GetUserByMacAddressResponse, error) {
 	conn, _ := grpc.NewClient(
-		buildAddress(tc.port, tc.host),
+		buildAddress(tc.host, tc.port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	defer func() {
@@ -80,15 +79,13 @@ func (tc Client) GetUserByMacAddress(
 
 	client := pbapiv1.NewApiClient(conn)
 
-	//ctx, cancel := context.WithTimeout(ctx, time.Second)
-	//defer cancel()
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 
-	fmt.Println(buildAddress(tc.port, tc.host))
 	user, err := client.GetUserByMacAddress(
 		ctx,
 		&pbapiv1.GetUserByMacAddressRequest{MacAddress: macAddress},
 	)
-
 	if err != nil {
 		return nil, handleError(ctx, err)
 	}
@@ -109,5 +106,5 @@ func handleError(ctx context.Context, err error) error {
 }
 
 func buildAddress(host, port string) string {
-	return fmt.Sprintf("%s:%s", host, port)
+	return net.JoinHostPort(host, port)
 }
