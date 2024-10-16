@@ -3,13 +3,15 @@ package api_pb
 import (
 	"context"
 	"fmt"
-	"github.com/go-kit/kit/log"
-	pbapiv1 "github.com/robertobadjio/tgtime-api/api/v1/pb/api"
-	"github.com/robertobadjio/tgtime-notifier/internal/config"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
+
+	"github.com/go-kit/kit/log"
+	pbapiv1 "github.com/robertobadjio/tgtime-api/api/v1/pb/api"
+	"github.com/robertobadjio/tgtime-notifier/internal/config"
 )
 
 // Client GRPC-клиент для получения пользователя из API-микросервиса
@@ -49,10 +51,13 @@ func (tc Client) GetUserByTelegramID(
 	//ctx, cancel := context.WithTimeout(ctx, time.Second)
 	//defer cancel()
 
+	fmt.Println(buildAddress(tc.port, tc.host))
+	fmt.Println(telegramID)
 	user, err := client.GetUserByTelegramId(
 		ctx,
 		&pbapiv1.GetUserByTelegramIdRequest{TelegramId: telegramID},
 	)
+	fmt.Println(user)
 	if err != nil {
 		return nil, handleError(ctx, err)
 	}
