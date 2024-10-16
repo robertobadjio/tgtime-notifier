@@ -8,7 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Config Конфига приложения
+// Config Конфиг приложения
 type Config struct {
 	BotToken             string
 	RouterAddress        string

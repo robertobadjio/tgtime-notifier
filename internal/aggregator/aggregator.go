@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/go-kit/kit/log"
-	pb "github.com/robertobadjio/tgtime-aggregator/api/v1/pb/aggregator"
+	pb "github.com/robertobadjio/tgtime-aggregator/pkg/api/time_v1"
 	"github.com/robertobadjio/tgtime-notifier/internal/config"
 )
 
@@ -18,7 +18,7 @@ import (
 type Client struct {
 	cfg    *config.Config
 	logger log.Logger
-	client pb.AggregatorClient
+	client pb.TimeV1Client
 }
 
 // NewClient Конструктор gRPC-клиента для подключения к сервису Агрегатор
@@ -28,20 +28,20 @@ func NewClient(cfg config.Config, logger log.Logger) *Client {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 
-	return &Client{cfg: &cfg, logger: logger, client: pb.NewAggregatorClient(conn)}
+	return &Client{cfg: &cfg, logger: logger, client: pb.NewTimeV1Client(conn)}
 }
 
 // GetTimeSummary Получение времени сотрудника
 func (tc Client) GetTimeSummary(
 	ctx context.Context,
 	macAddress, date string,
-) (*pb.GetTimeSummaryResponse, error) {
+) (*pb.GetSummaryResponse, error) {
 	filters := make([]*pb.Filter, 0, 2)
 	filters = append(filters, &pb.Filter{Key: "mac_address", Value: macAddress})
 	filters = append(filters, &pb.Filter{Key: "date", Value: date})
-	timeSummary, err := tc.client.GetTimeSummary(
+	timeSummary, err := tc.client.GetSummary(
 		ctx,
-		&pb.GetTimeSummaryRequest{Filters: filters},
+		&pb.GetSummaryRequest{Filters: filters},
 	)
 
 	if err != nil {

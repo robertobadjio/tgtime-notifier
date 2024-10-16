@@ -1,8 +1,8 @@
 package kafka
 
 const inOfficeTopic = "in-office"
+const previousDayInfoTopic = "previous-day-info"
 
-// const previousDayInfoTopic = "previous-day-info"
 const partition = 0
 
 /*type PreviousDayInfoMessage struct {

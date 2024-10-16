@@ -3,6 +3,7 @@ package api_pb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -10,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/go-kit/kit/log"
-	pb "github.com/robertobadjio/tgtime-api/api/v1/pb/api"
+	pbapiv1 "github.com/robertobadjio/tgtime-api/api/v1/pb/api"
 	"github.com/robertobadjio/tgtime-notifier/internal/config"
 )
 
@@ -18,27 +19,41 @@ import (
 type Client struct {
 	cfg    *config.Config
 	logger log.Logger
-	client pb.ApiClient
+	host   string
+	port   string
 }
 
 // NewClient Конструктор GRPC-клиента для получения пользователя из API-микросервиса
 func NewClient(cfg config.Config, logger log.Logger) *Client {
-	conn, _ := grpc.NewClient(
-		buildAddress(cfg.TgTimeAPIHost, cfg.TgTimeAPIPort),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-
-	return &Client{cfg: &cfg, logger: logger, client: pb.NewApiClient(conn)}
+	return &Client{
+		cfg:    &cfg,
+		logger: logger,
+		host:   cfg.TgTimeAPIHost,
+		port:   cfg.TgTimeAPIPort,
+	}
 }
 
 // GetUserByTelegramID Получение пользователя по telegram ID
 func (tc Client) GetUserByTelegramID(
 	ctx context.Context,
 	telegramID int64,
-) (*pb.GetUserByTelegramIdResponse, error) {
-	user, err := tc.client.GetUserByTelegramId(
+) (*pbapiv1.GetUserByTelegramIdResponse, error) {
+	conn, _ := grpc.NewClient(
+		buildAddress(tc.port, tc.host),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	defer func() {
+		_ = conn.Close()
+	}()
+
+	client := pbapiv1.NewApiClient(conn)
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+
+	user, err := client.GetUserByTelegramId(
 		ctx,
-		&pb.GetUserByTelegramIdRequest{TelegramId: telegramID},
+		&pbapiv1.GetUserByTelegramIdRequest{TelegramId: telegramID},
 	)
 	if err != nil {
 		return nil, handleError(ctx, err)
@@ -51,10 +66,23 @@ func (tc Client) GetUserByTelegramID(
 func (tc Client) GetUserByMacAddress(
 	ctx context.Context,
 	macAddress string,
-) (*pb.GetUserByMacAddressResponse, error) {
-	user, err := tc.client.GetUserByMacAddress(
+) (*pbapiv1.GetUserByMacAddressResponse, error) {
+	conn, _ := grpc.NewClient(
+		buildAddress(tc.port, tc.host),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	defer func() {
+		_ = conn.Close()
+	}()
+
+	client := pbapiv1.NewApiClient(conn)
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+
+	user, err := client.GetUserByMacAddress(
 		ctx,
-		&pb.GetUserByMacAddressRequest{MacAddress: macAddress},
+		&pbapiv1.GetUserByMacAddressRequest{MacAddress: macAddress},
 	)
 
 	if err != nil {

@@ -2,7 +2,6 @@ package command
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -20,7 +19,7 @@ type WorkingTimeCommand struct {
 }
 
 type timeBreak struct {
-	BeginTime int64 `json:"beginTime"` // TODO: rename StartTime
+	StartTime int64 `json:"startTime"`
 	EndTime   int64 `json:"endTime"`
 }
 
@@ -47,16 +46,16 @@ func (wtc WorkingTimeCommand) GetMessage(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error getting time summary: %w", err)
 	}
-	if len(timeSummaryResponse.TimeSummary) == 0 {
+	if len(timeSummaryResponse.Summary) == 0 {
 		return "", fmt.Errorf("time summary not found")
 	}
 
-	if timeSummaryResponse.TimeSummary[0].SecondsStart == 0 {
+	if timeSummaryResponse.Summary[0].SecondsStart == 0 {
 		return "Вы сегодня не были в офисе", nil
 	}
 
-	hours, minutes := secondsToHM(int(timeSummaryResponse.TimeSummary[0].Seconds))
-	beginTime := time.Unix(timeSummaryResponse.TimeSummary[0].SecondsStart, 0)
+	hours, minutes := secondsToHM(int(timeSummaryResponse.Summary[0].Seconds))
+	beginTime := time.Unix(timeSummaryResponse.Summary[0].SecondsStart, 0)
 	mes := fmt.Sprintf(
 		"Сегодня Вы в офисе с %s\nУчтенное время %d ч. %d м.",
 		beginTime.Format("15:04"),
@@ -64,9 +63,14 @@ func (wtc WorkingTimeCommand) GetMessage(ctx context.Context) (string, error) {
 		minutes,
 	)
 
-	// TODO: По GRPC отдавать сразу срез
 	var breaksRaw []*timeBreak
-	_ = json.Unmarshal([]byte(timeSummaryResponse.TimeSummary[0].GetBreaksJson()), &breaksRaw)
+	for _, b := range timeSummaryResponse.Summary[0].GetBreaks() {
+		breaksRaw = append(breaksRaw, &timeBreak{
+			StartTime: b.SecondsStart,
+			EndTime:   b.SecondsEnd,
+		})
+	}
+
 	breaks := breaksToString(buildBreaks(breaksRaw))
 	if breaks != "" {
 		mes += fmt.Sprintf("\nПерерывы %s", breaks)
@@ -94,7 +98,7 @@ func getMoscowLocation() *time.Location {
 func buildBreaks(breaks []*timeBreak) []string {
 	var output []string
 	for _, item := range breaks {
-		beginTime := time.Unix(item.BeginTime, 0)
+		beginTime := time.Unix(item.StartTime, 0)
 		endTime := time.Unix(item.EndTime, 0)
 		output = append(
 			output,

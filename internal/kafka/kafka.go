@@ -64,6 +64,45 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, tn *telegram.Notifier) erro
 	return nil
 }
 
+// ConsumePreviousDayInfo Информация о предыдущем дне сотрудника
+func (k *Kafka) ConsumePreviousDayInfo(ctx context.Context, tn *telegram.Notifier) error {
+	r := k.buildReader(previousDayInfoTopic)
+	defer func() {
+		if err := r.Close(); err != nil {
+			_ = k.logger.Log("failed to close reader:", err)
+		}
+	}()
+
+	tgtimeClient := api_pb.NewClient(*config.New(), k.logger)
+
+	for {
+		m, err := r.ReadMessage(ctx)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+
+			return fmt.Errorf("reading message: %w", err)
+		}
+		//fmt.Printf("message at offset %d: %s = %s\n", m.Offset, string(m.Key), string(m.Value))
+		//fmt.Printf(string(m.Value))
+
+		userResponse, err := tgtimeClient.GetUserByMacAddress(ctx, string(m.Value))
+		if err != nil {
+			fmt.Println("error getting user by mac address " + string(m.Value))
+			continue
+		}
+
+		fmt.Printf("%+v\n", userResponse.User.TelegramId)
+		err = tn.SendWelcomeMessage(ctx, userResponse.User.TelegramId)
+		if err != nil {
+			fmt.Println("error sending welcome message: ", err.Error())
+		}
+	}
+
+	return nil
+}
+
 func (k *Kafka) buildReader(topicName string) *kafkaLib.Reader {
 	return kafkaLib.NewReader(kafkaLib.ReaderConfig{
 		Brokers:   []string{buildAddress(k.host, k.port)},

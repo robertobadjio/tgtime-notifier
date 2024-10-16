@@ -23,8 +23,8 @@ github.com/pierrec/lz4/v4 v4.1.16 h1:kQPfno+wyx6C5572ABwV+Uo3pDFzQ7yhyGchSyRda0c
 github.com/pierrec/lz4/v4 v4.1.16/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/robertobadjio/tgtime-aggregator v1.0.2 h1:TiykIWsXSpzWrxy3HOFFzuaxqz3rTXeT/vF3UG2kxiA=
-github.com/robertobadjio/tgtime-aggregator v1.0.2/go.mod h1:/xsvgi2pwNqhEQFwmovLPnNuOqK3ScbHuqq7p7JSgGs=
+github.com/robertobadjio/tgtime-aggregator v0.0.1 h1:4AUjCjPu4hsv72PatjA0Tn5DRDr/QfH9pWrlt1bbr/4=
+github.com/robertobadjio/tgtime-aggregator v0.0.1/go.mod h1:SmRt13jlxvhVN5HpfqGCFY0nMxbuy2HCbKpaaCPULOk=
 github.com/robertobadjio/tgtime-api v0.0.4 h1:oyjcinV/1C8e6xSYafxFXt53A5JYd43Oxh34dUAGj9c=
 github.com/robertobadjio/tgtime-api v0.0.4/go.mod h1:6ejGi503cqHnB4mkSLl+rkIjKuqaqiQTCHdobGj8lfE=
 github.com/segmentio/kafka-go v0.4.47 h1:IqziR4pA3vrZq7YdRxaT3w1/5fvIH5qpCwstUanQQB0=

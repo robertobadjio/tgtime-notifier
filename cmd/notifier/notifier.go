@@ -29,7 +29,7 @@ func main() {
 	tgNotifier := telegram.NewTelegramNotifier(logger)
 
 	startCheckInOffice(ctx, cfg, logger, tgNotifier)
-	//startCheckPreviousDayInfo()
+	startCheckPreviousDayInfo(ctx, cfg, logger, tgNotifier)
 
 	updates := tgNotifier.GetBot().ListenForWebhook("/" + cfg.WebHookPath)
 	go func() {
@@ -73,8 +73,13 @@ func startCheckInOffice(
 	bc.Start()
 }
 
-func startCheckPreviousDayInfo() {
-	/*f2 := func() {
+func startCheckPreviousDayInfo(
+	ctx context.Context,
+	cfg *config.Config,
+	logger log.Logger,
+	tgNotifier *telegram.Notifier,
+) {
+	f2 := func() {
 		kafka := kafkaLib.NewKafka(logger, cfg.KafkaHost, cfg.KafkaPort)
 		err := kafka.ConsumePreviousDayInfo(ctx, tgNotifier)
 		if err != nil {
@@ -83,5 +88,5 @@ func startCheckPreviousDayInfo() {
 	}
 	// TODO: В 12 дня посылать информацию о предыдущем дне
 	bc2 := background.NewBackground(time.Duration(60)*time.Second, f2)
-	bc2.Start()*/
+	bc2.Start()
 }
