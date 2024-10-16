@@ -77,8 +77,8 @@ func (tc Client) GetUserByMacAddress(
 
 	client := pbapiv1.NewApiClient(conn)
 
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
-	defer cancel()
+	//ctx, cancel := context.WithTimeout(ctx, time.Second)
+	//defer cancel()
 
 	user, err := client.GetUserByMacAddress(
 		ctx,
