@@ -39,6 +39,7 @@ func (tc Client) GetUserByTelegramID(
 		buildAddress(tc.port, tc.host),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
+
 	defer func() {
 		_ = conn.Close()
 	}()
@@ -77,6 +78,7 @@ func (tc Client) GetUserByMacAddress(
 	//ctx, cancel := context.WithTimeout(ctx, time.Second)
 	//defer cancel()
 
+	fmt.Println(buildAddress(tc.port, tc.host))
 	user, err := client.GetUserByMacAddress(
 		ctx,
 		&pbapiv1.GetUserByMacAddressRequest{MacAddress: macAddress},
