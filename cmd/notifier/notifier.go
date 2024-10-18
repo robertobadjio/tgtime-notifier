@@ -53,7 +53,7 @@ func main() {
 	updates := tgNotifier.GetBot().ListenForWebhook("/" + tgConfig.GetWebhookPath())
 	go func() {
 		srv := &http.Server{
-			//Addr:         ":8441", // TODO: const
+			Addr:         ":8441", // TODO: const
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 10 * time.Second,
 		}
