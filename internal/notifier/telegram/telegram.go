@@ -120,7 +120,8 @@ func (tn *Notifier) SendWelcomeMessage(ctx context.Context, telegramID int64) er
 	return nil
 }
 
-func (tn *Notifier) SendPreviousDayInfoMessage(ctx context.Context) error {
+// SendPreviousDayInfoMessage ???
+func (tn *Notifier) SendPreviousDayInfoMessage(_ context.Context) error {
 	// TODO: ?!
 
 	return nil
