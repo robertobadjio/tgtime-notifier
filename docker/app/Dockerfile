@@ -23,6 +23,4 @@ COPY --from=build /.env .
 
 ENV TZ Europe/Moscow
 
-EXPOSE 8441
-
 CMD ["/tgtime-notifier", "--config", "config"]

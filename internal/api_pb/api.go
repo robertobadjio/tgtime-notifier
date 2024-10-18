@@ -3,7 +3,6 @@ package api_pb
 import (
 	"context"
 	"fmt"
-	"net"
 	"time"
 
 	"google.golang.org/grpc"
@@ -18,19 +17,15 @@ import (
 
 // Client GRPC-клиент для получения пользователя из API-микросервиса
 type Client struct {
-	cfg    *config.Config
+	cfg    config.TgTimeAPIConfig
 	logger log.Logger
-	host   string
-	port   string
 }
 
 // NewClient Конструктор GRPC-клиента для получения пользователя из API-микросервиса
-func NewClient(cfg config.Config, logger log.Logger) *Client {
+func NewClient(cfg config.TgTimeAPIConfig, logger log.Logger) *Client {
 	return &Client{
-		cfg:    &cfg,
+		cfg:    cfg,
 		logger: logger,
-		host:   cfg.TgTimeAPIHost,
-		port:   cfg.TgTimeAPIPort,
 	}
 }
 
@@ -40,7 +35,7 @@ func (tc Client) GetUserByTelegramID(
 	telegramID int64,
 ) (*pbapiv1.GetUserByTelegramIdResponse, error) {
 	conn, _ := grpc.NewClient(
-		buildAddress(tc.host, tc.port),
+		tc.cfg.Address(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 
@@ -70,7 +65,7 @@ func (tc Client) GetUserByMacAddress(
 	macAddress string,
 ) (*pbapiv1.GetUserByMacAddressResponse, error) {
 	conn, _ := grpc.NewClient(
-		buildAddress(tc.host, tc.port),
+		tc.cfg.Address(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	defer func() {
@@ -103,8 +98,4 @@ func handleError(ctx context.Context, err error) error {
 	}
 
 	return fmt.Errorf("Non-RPC error: %v", err)
-}
-
-func buildAddress(host, port string) string {
-	return net.JoinHostPort(host, port)
 }

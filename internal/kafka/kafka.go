@@ -15,14 +15,13 @@ import (
 
 // Kafka Клиент для подключения к кафке
 type Kafka struct {
-	logger log.Logger
-	host   string
-	port   string
+	logger    log.Logger
+	addresses []string
 }
 
 // NewKafka Конструктор клиента
-func NewKafka(logger log.Logger, host, port string) *Kafka {
-	return &Kafka{logger: logger, host: host, port: port}
+func NewKafka(logger log.Logger, addresses []string) *Kafka {
+	return &Kafka{logger: logger, addresses: addresses}
 }
 
 // ConsumeInOffice Чтение сообщений из кафки о приходе сотрудника в офис / на работу
@@ -34,46 +33,9 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context, tn *telegram.Notifier) erro
 		}
 	}()
 
-	tgtimeClient := api_pb.NewClient(*config.New(), k.logger)
+	tgTimeAPIConfig, _ := config.NewTgTimeAPIConfig() // TODO: ?!
 
-	for {
-		m, err := r.ReadMessage(ctx)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-
-			return fmt.Errorf("reading message: %w", err)
-		}
-		//fmt.Printf("message at offset %d: %s = %s\n", m.Offset, string(m.Key), string(m.Value))
-		//fmt.Printf(string(m.Value))
-
-		userResponse, err := tgtimeClient.GetUserByMacAddress(ctx, string(m.Value))
-		if err != nil {
-			fmt.Println("error getting user by mac address " + string(m.Value))
-			continue
-		}
-
-		fmt.Printf("%+v\n", userResponse.User.TelegramId)
-		err = tn.SendWelcomeMessage(ctx, userResponse.User.TelegramId)
-		if err != nil {
-			fmt.Println("error sending welcome message: ", err.Error())
-		}
-	}
-
-	return nil
-}
-
-// ConsumePreviousDayInfo Информация о предыдущем дне сотрудника
-func (k *Kafka) ConsumePreviousDayInfo(ctx context.Context, tn *telegram.Notifier) error {
-	r := k.buildReader(previousDayInfoTopic)
-	defer func() {
-		if err := r.Close(); err != nil {
-			_ = k.logger.Log("failed to close reader:", err)
-		}
-	}()
-
-	tgtimeClient := api_pb.NewClient(*config.New(), k.logger)
+	tgtimeClient := api_pb.NewClient(tgTimeAPIConfig, k.logger)
 
 	for {
 		m, err := r.ReadMessage(ctx)
@@ -105,14 +67,10 @@ func (k *Kafka) ConsumePreviousDayInfo(ctx context.Context, tn *telegram.Notifie
 
 func (k *Kafka) buildReader(topicName string) *kafkaLib.Reader {
 	return kafkaLib.NewReader(kafkaLib.ReaderConfig{
-		Brokers:   []string{buildAddress(k.host, k.port)},
+		Brokers:   k.addresses,
 		Topic:     topicName,
 		Partition: partition,
 		GroupID:   "",
 		MaxBytes:  10e3,
 	})
-}
-
-func buildAddress(host, port string) string {
-	return host + ":" + port
 }

@@ -16,19 +16,18 @@ import (
 
 // Client gRPC-клиент для подключения к сервису Агрегатор
 type Client struct {
-	cfg    *config.Config
 	logger log.Logger
 	client pb.TimeV1Client
 }
 
 // NewClient Конструктор gRPC-клиента для подключения к сервису Агрегатор
-func NewClient(cfg config.Config, logger log.Logger) *Client {
+func NewClient(cfg config.TgTimeAPIConfig, logger log.Logger) *Client {
 	conn, _ := grpc.NewClient(
-		buildAddress(cfg.TgTimeAggregatorHost, cfg.TgTimeAggregatorPort),
+		cfg.Address(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 
-	return &Client{cfg: &cfg, logger: logger, client: pb.NewTimeV1Client(conn)}
+	return &Client{logger: logger, client: pb.NewTimeV1Client(conn)}
 }
 
 // GetTimeSummary Получение времени сотрудника
@@ -37,8 +36,14 @@ func (tc Client) GetTimeSummary(
 	macAddress, date string,
 ) (*pb.GetSummaryResponse, error) {
 	filters := make([]*pb.Filter, 0, 2)
-	filters = append(filters, &pb.Filter{Key: "mac_address", Value: macAddress})
-	filters = append(filters, &pb.Filter{Key: "date", Value: date})
+	if macAddress != "" {
+		filters = append(filters, &pb.Filter{Key: "mac_address", Value: macAddress})
+	}
+
+	if date != "" {
+		filters = append(filters, &pb.Filter{Key: "date", Value: date})
+	}
+
 	timeSummary, err := tc.client.GetSummary(
 		ctx,
 		&pb.GetSummaryRequest{Filters: filters},
@@ -61,8 +66,4 @@ func handleError(ctx context.Context, err error) error {
 	}
 
 	return fmt.Errorf("Non-RPC error: %v", err)
-}
-
-func buildAddress(host, port string) string {
-	return fmt.Sprintf("%s:%s", host, port)
 }

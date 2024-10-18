@@ -19,6 +19,7 @@ const (
 	buttonStatCurrentWorkingPeriod MessageType = "🗓 Статистика за рабочий период"
 	buttonStart                    MessageType = "/start"
 	welcome                        MessageType = "welcome"
+	//previousDayInfo                        MessageType = "previousDayInfo"
 )
 
 // NewCommand Фабрика для получения обработчика команды пользователя

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
+	"github.com/robertobadjio/tgtime-aggregator/pkg/api/time_v1"
 	"github.com/robertobadjio/tgtime-notifier/internal/aggregator"
 	"github.com/robertobadjio/tgtime-notifier/internal/api_pb"
 	"github.com/robertobadjio/tgtime-notifier/internal/config"
@@ -18,21 +19,24 @@ type WorkingTimeCommand struct {
 	TelegramID int64
 }
 
-type timeBreak struct {
-	StartTime int64 `json:"startTime"`
-	EndTime   int64 `json:"endTime"`
-}
-
 // GetMessage Метод получения текста команды
 func (wtc WorkingTimeCommand) GetMessage(ctx context.Context) (string, error) {
-	cfg := config.New()
+	tgTimeAggregatorConfig, err := config.NewTgTimeAggregatorConfig()
+	if err != nil {
+		return "", fmt.Errorf("error loading config: %w", err)
+	}
+
+	tgTimeAPIConfig, err := config.NewTgTimeAPIConfig()
+	if err != nil {
+		return "", fmt.Errorf("error loading config: %w", err)
+	}
 
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 
-	aggregatorClient := aggregator.NewClient(*cfg, logger)
-	apiClient := api_pb.NewClient(*cfg, logger)
+	aggregatorClient := aggregator.NewClient(tgTimeAggregatorConfig, logger)
+	apiClient := api_pb.NewClient(tgTimeAPIConfig, logger)
 	user, err := apiClient.GetUserByTelegramID(ctx, wtc.TelegramID)
 	if err != nil {
 		return "", fmt.Errorf("error getting user by telegram id: %w", err)
@@ -54,8 +58,8 @@ func (wtc WorkingTimeCommand) GetMessage(ctx context.Context) (string, error) {
 		return "Вы сегодня не были в офисе", nil
 	}
 
-	hours, minutes := secondsToHM(int(timeSummaryResponse.Summary[0].Seconds))
-	beginTime := time.Unix(timeSummaryResponse.Summary[0].SecondsStart, 0)
+	hours, minutes := SecondsToHM(timeSummaryResponse.Summary[0].Seconds)
+	beginTime := SecondsToTime(timeSummaryResponse.Summary[0].SecondsStart)
 	mes := fmt.Sprintf(
 		"Сегодня Вы в офисе с %s\nУчтенное время %d ч. %d м.",
 		beginTime.Format("15:04"),
@@ -63,15 +67,7 @@ func (wtc WorkingTimeCommand) GetMessage(ctx context.Context) (string, error) {
 		minutes,
 	)
 
-	var breaksRaw []*timeBreak
-	for _, b := range timeSummaryResponse.Summary[0].GetBreaks() {
-		breaksRaw = append(breaksRaw, &timeBreak{
-			StartTime: b.SecondsStart,
-			EndTime:   b.SecondsEnd,
-		})
-	}
-
-	breaks := breaksToString(buildBreaks(breaksRaw))
+	breaks := BreaksToString(BuildBreaks(timeSummaryResponse.Summary[0].GetBreaks()))
 	if breaks != "" {
 		mes += fmt.Sprintf("\nПерерывы %s", breaks)
 	}
@@ -79,7 +75,8 @@ func (wtc WorkingTimeCommand) GetMessage(ctx context.Context) (string, error) {
 	return mes, nil
 }
 
-func secondsToHM(seconds int) (int, int) {
+// SecondsToHM ???
+func SecondsToHM(seconds int64) (int64, int64) {
 	hours := seconds / 3600
 	minutes := (seconds / 60) - (hours * 60)
 
@@ -95,11 +92,12 @@ func getMoscowLocation() *time.Location {
 	return moscowLocation
 }
 
-func buildBreaks(breaks []*timeBreak) []string {
+// BuildBreaks ???
+func BuildBreaks(breaks []*time_v1.Break) []string {
 	var output []string
 	for _, item := range breaks {
-		beginTime := time.Unix(item.StartTime, 0)
-		endTime := time.Unix(item.EndTime, 0)
+		beginTime := time.Unix(item.SecondsStart, 0)
+		endTime := time.Unix(item.SecondsEnd, 0)
 		output = append(
 			output,
 			fmt.Sprintf("%s - %s", beginTime.Format("15:04"), endTime.Format("15:04")))
@@ -108,6 +106,12 @@ func buildBreaks(breaks []*timeBreak) []string {
 	return output
 }
 
-func breaksToString(breaks []string) string {
+// BreaksToString ???
+func BreaksToString(breaks []string) string {
 	return strings.Join(breaks, ", ")
+}
+
+// SecondsToTime ???
+func SecondsToTime(seconds int64) time.Time {
+	return time.Unix(seconds, 0)
 }
