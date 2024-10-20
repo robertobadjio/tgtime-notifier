@@ -7,7 +7,7 @@ services:
       dockerfile: ./docker/app/Dockerfile
     container_name: tgtime-notifier-app
     ports:
-      - "1122:8080"
+      - "${HTTP_PORT}:${HTTP_PORT}"
     networks:
       - tgtime-notifier-network
     depends_on:
@@ -17,8 +17,6 @@ services:
     build:
       context: .
       dockerfile: ./docker/tgtime-api/Dockerfile
-    ports:
-      - "1080:1080"
     environment:
       MOCKSERVER_INITIALIZATION_JSON_PATH: /config/initializerJson.json
       MOCKSERVER_LOG_LEVEL: INFO
@@ -50,7 +48,7 @@ services:
       - KAFKA_CLEANUP_POLICY=delete
       - KAFKA_CLEANUP_ENABLE=true
       - KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS=5000
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
     networks:
       - tgtime-notifier-network
 

@@ -62,9 +62,11 @@ func main() {
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 10 * time.Second,
 		}
+		_ = logger.Log("transport", "HTTP", "addr", httpConfig.Address())
 		err = srv.ListenAndServe()
 		if err != nil {
 			_ = logger.Log("telegram", "updates", "type", "serve", "msg", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -102,76 +104,81 @@ func startCheckPreviousDayInfo(
 	logger log.Logger,
 	tn *telegram.Notifier,
 ) {
-	f := func() {
-		tgTimeAggregatorConfig, err := config.NewTgTimeAggregatorConfig()
-		if err != nil {
-			//return fmt.Errorf("error loading config: %w", err)
-			_ = logger.Log("kafka", "consume", "type", "in office message", "msg", err)
-			return
-		}
-
-		tgTimeAPIConfig, err := config.NewTgTimeAPIConfig()
-		if err != nil {
-			//return fmt.Errorf("error loading config: %w", err)
-			_ = logger.Log("kafka", "consume", "type", "in office message", "msg", err)
-			return
-		}
-
-		aggregatorClient := aggregator.NewClient(tgTimeAggregatorConfig, logger)
-
-		timeSummaryResponse, err := aggregatorClient.GetTimeSummary(
-			ctx,
-			"",
-			getPreviousDate("Europe/Moscow").Format("2006-01-02"),
-		)
-		if err != nil {
-			//return fmt.Errorf("error getting time summary: %w", err)
-			_ = logger.Log("kafka", "consume", "type", "in office message", "msg", err)
-			return
-		}
-		if len(timeSummaryResponse.Summary) == 0 {
-			//return nil
-			_ = logger.Log("kafka", "consume", "type", "in office message", "msg", err)
-			return
-		}
-
-		apiClient := api_pb.NewClient(tgTimeAPIConfig, logger)
-
-		for _, summaryByUser := range timeSummaryResponse.Summary {
-			user, err := apiClient.GetUserByMacAddress(ctx, summaryByUser.MacAddress)
-			if err != nil {
-				_ = logger.Log("kafka", "consume", "type", "in office message", "msg", err)
-				continue
-				//return fmt.Errorf("error getting user by telegram id: %w", err)
-			}
-
-			hours, minutes := command.SecondsToHM(summaryByUser.GetSeconds())
-
-			breaksString := command.BreaksToString(command.BuildBreaks(summaryByUser.Breaks))
-			message := fmt.Sprintf(
-				"Вчера Вы были в офисе с %s до %s\nУчтенное время %d ч. %d м.",
-				command.SecondsToTime(summaryByUser.GetSecondsStart()).Format("15:04"),
-				command.SecondsToTime(summaryByUser.GetSecondsEnd()).Format("15:04"),
-				hours,
-				minutes,
-			)
-
-			if "" != breaksString {
-				message += fmt.Sprintf("\nПерерывы %s\n", breaksString)
-			}
-
-			_, err = tn.GetBot().Send(tn.SetKeyboard(tgbotapi.NewMessage(user.GetUser().TelegramId, message)))
-			if err != nil {
-				_ = logger.Log("kafka", "consume", "type", "in office message", "msg", err)
-			}
-		}
+	t := time.Now()
+	n := time.Date(t.Year(), t.Month(), t.Day(), 12, 0, 0, 0, t.Location())
+	d := n.Sub(t)
+	if d < 0 {
+		n = n.Add(24 * time.Hour)
+		d = n.Sub(t)
 	}
-	// TODO: В 12 дня посылать информацию о предыдущем дне
-	bc2 := background.NewBackground(time.Duration(60)*time.Second, f)
-	bc2.Start()
+	for {
+		time.Sleep(d)
+		d = 24 * time.Hour
+
+		_ = sendPreviousDayInfo(ctx, logger, tn) // TODO: Handle error
+	}
 }
 
 func getPreviousDate(location string) time.Time {
 	moscowLocation, _ := time.LoadLocation(location)
 	return time.Now().AddDate(0, 0, -1).In(moscowLocation)
+}
+
+func sendPreviousDayInfo(ctx context.Context, logger log.Logger, tn *telegram.Notifier) error {
+	tgTimeAggregatorConfig, err := config.NewTgTimeAggregatorConfig()
+	if err != nil {
+		return fmt.Errorf("error loading config: %w", err)
+	}
+
+	tgTimeAPIConfig, err := config.NewTgTimeAPIConfig()
+	if err != nil {
+		return fmt.Errorf("error loading config: %w", err)
+	}
+
+	aggregatorClient := aggregator.NewClient(tgTimeAggregatorConfig, logger)
+
+	timeSummaryResponse, err := aggregatorClient.GetTimeSummary(
+		ctx,
+		"",
+		getPreviousDate("Europe/Moscow").Format("2006-01-02"),
+	)
+	if err != nil {
+		return fmt.Errorf("error getting time summary: %w", err)
+	}
+	if len(timeSummaryResponse.Summary) == 0 {
+		return nil
+	}
+
+	apiClient := api_pb.NewClient(tgTimeAPIConfig, logger)
+
+	for _, summaryByUser := range timeSummaryResponse.Summary {
+		user, err := apiClient.GetUserByMacAddress(ctx, summaryByUser.MacAddress)
+		if err != nil {
+			// TODO: log error
+			continue
+			//return fmt.Errorf("error getting user by telegram id: %w", err)
+		}
+
+		hours, minutes := command.SecondsToHM(summaryByUser.GetSeconds())
+
+		breaksString := command.BreaksToString(command.BuildBreaks(summaryByUser.Breaks))
+		message := fmt.Sprintf(
+			"Вчера Вы были в офисе с %s до %s\nУчтенное время %d ч. %d м.",
+			command.SecondsToTime(summaryByUser.GetSecondsStart()).Format("15:04"),
+			command.SecondsToTime(summaryByUser.GetSecondsEnd()).Format("15:04"),
+			hours,
+			minutes,
+		)
+
+		if "" != breaksString {
+			message += fmt.Sprintf("\nПерерывы %s\n", breaksString)
+		}
+
+		_, err = tn.GetBot().Send(tn.SetKeyboard(tgbotapi.NewMessage(user.GetUser().TelegramId, message)))
+		if err != nil {
+			_ = logger.Log("kafka", "consume", "type", "in office message", "msg", err)
+		}
+	}
+
+	return nil
 }

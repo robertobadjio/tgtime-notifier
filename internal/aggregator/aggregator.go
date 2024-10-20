@@ -14,7 +14,7 @@ import (
 	"github.com/robertobadjio/tgtime-notifier/internal/config"
 )
 
-// Client gRPC-клиент для подключения к сервису Агрегатор
+// Client GRPC-клиент для подключения к сервису Агрегатор
 type Client struct {
 	logger log.Logger
 	client pb.TimeV1Client

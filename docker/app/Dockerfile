@@ -10,7 +10,6 @@ RUN go mod download
 COPY ../../cmd/notifier/notifier.go ./
 COPY ../../internal internal
 COPY ../../cmd cmd
-COPY ../../.env /
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /tgtime-notifier
 
@@ -19,7 +18,6 @@ FROM scratch
 COPY --from=build /usr/share/zoneinfo/Europe/Moscow /usr/share/zoneinfo/Europe/Moscow
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /tgtime-notifier .
-COPY --from=build /.env .
 
 ENV TZ Europe/Moscow
 
