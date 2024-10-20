@@ -48,7 +48,7 @@ func main() {
 	}
 
 	startCheckInOffice(ctx, logger, tgNotifier, kafkaConfig.GetAddresses())
-	startCheckPreviousDayInfo(ctx, logger, tgNotifier)
+	go startCheckPreviousDayInfo(ctx, logger, tgNotifier)
 
 	updates := tgNotifier.GetBot().ListenForWebhook("/" + tgConfig.GetWebhookPath())
 	go func() {
