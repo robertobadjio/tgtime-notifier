@@ -9,29 +9,35 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	"github.com/go-kit/kit/log"
 	pb "github.com/robertobadjio/tgtime-aggregator/pkg/api/time_v1"
 	"github.com/robertobadjio/tgtime-notifier/internal/config"
 )
 
+// Client ???
+type Client interface {
+	GetTimeSummary(
+		ctx context.Context,
+		macAddress, date string,
+	) (*pb.GetSummaryResponse, error)
+}
+
 // Client GRPC-клиент для подключения к сервису Агрегатор
-type Client struct {
-	logger log.Logger
+type client struct {
 	client pb.TimeV1Client
 }
 
 // NewClient Конструктор gRPC-клиента для подключения к сервису Агрегатор
-func NewClient(cfg config.TgTimeAPIConfig, logger log.Logger) *Client {
+func NewClient(cfg config.TgTimeAPIConfig) Client {
 	conn, _ := grpc.NewClient(
 		cfg.Address(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 
-	return &Client{logger: logger, client: pb.NewTimeV1Client(conn)}
+	return &client{client: pb.NewTimeV1Client(conn)}
 }
 
 // GetTimeSummary Получение времени сотрудника
-func (tc Client) GetTimeSummary(
+func (tc *client) GetTimeSummary(
 	ctx context.Context,
 	macAddress, date string,
 ) (*pb.GetSummaryResponse, error) {

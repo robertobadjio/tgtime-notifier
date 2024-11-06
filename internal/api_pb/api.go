@@ -10,27 +10,36 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	"github.com/go-kit/kit/log"
 	pbapiv1 "github.com/robertobadjio/tgtime-api/api/v1/pb/api"
 	"github.com/robertobadjio/tgtime-notifier/internal/config"
 )
 
+// Client ???
+type Client interface {
+	GetUserByTelegramID(ctx context.Context, telegramID int64) (
+		*pbapiv1.GetUserByTelegramIdResponse,
+		error,
+	)
+	GetUserByMacAddress(
+		ctx context.Context,
+		macAddress string,
+	) (*pbapiv1.GetUserByMacAddressResponse, error)
+}
+
 // Client GRPC-клиент для получения пользователя из API-микросервиса
-type Client struct {
-	cfg    config.TgTimeAPIConfig
-	logger log.Logger
+type client struct {
+	cfg config.TgTimeAPIConfig
 }
 
 // NewClient Конструктор GRPC-клиента для получения пользователя из API-микросервиса
-func NewClient(cfg config.TgTimeAPIConfig, logger log.Logger) *Client {
-	return &Client{
-		cfg:    cfg,
-		logger: logger,
+func NewClient(cfg config.TgTimeAPIConfig) Client {
+	return &client{
+		cfg: cfg,
 	}
 }
 
 // GetUserByTelegramID Получение пользователя по telegram ID
-func (tc Client) GetUserByTelegramID(
+func (tc *client) GetUserByTelegramID(
 	ctx context.Context,
 	telegramID int64,
 ) (*pbapiv1.GetUserByTelegramIdResponse, error) {
@@ -60,7 +69,7 @@ func (tc Client) GetUserByTelegramID(
 }
 
 // GetUserByMacAddress Получение пользователя по MAC-адресу
-func (tc Client) GetUserByMacAddress(
+func (tc *client) GetUserByMacAddress(
 	ctx context.Context,
 	macAddress string,
 ) (*pbapiv1.GetUserByMacAddressResponse, error) {

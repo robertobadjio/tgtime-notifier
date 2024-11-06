@@ -1,9 +1,15 @@
 package notifier
 
-import "context"
+import (
+	"context"
+)
+
+// Params ???
+type Params interface{}
 
 // Notifier ???
 type Notifier interface {
-	SendMessageCommand(ctx context.Context) error
-	SendWelcomeMessage(ctx context.Context) error
+	SendCommandMessage(ctx context.Context, params Params) error
+	SendWelcomeMessage(ctx context.Context, params Params) error
+	SendPreviousDayInfoMessage(ctx context.Context, params Params) error
 }

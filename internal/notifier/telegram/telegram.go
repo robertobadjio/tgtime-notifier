@@ -1,128 +1,81 @@
 package telegram
 
 import (
-	"context"
 	"fmt"
+	"time"
 
-	"github.com/go-kit/kit/log"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/robertobadjio/tgtime-notifier/internal/config"
+	TGBotAPI "github.com/go-telegram-bot-api/telegram-bot-api"
+
+	notifierI "github.com/robertobadjio/tgtime-notifier/internal/notifier"
+	"github.com/robertobadjio/tgtime-notifier/internal/notifier/telegram/command"
 )
 
-// Notifier Telegram-нотификатор
-type Notifier struct {
-	logger log.Logger
-	Bot    *tgbotapi.BotAPI
+// TgNotifier Telegram-нотификатор
+type notifier struct {
+	bot     *TGBotAPI.BotAPI
+	factory command.Factory
+}
+
+// ParamsUpdate ???
+type ParamsUpdate struct {
+	Update TGBotAPI.Update
+}
+
+// ParamsWorkingTime ???
+type ParamsWorkingTime struct {
+}
+
+// ParamsPreviousDayInfo ???
+type ParamsPreviousDayInfo struct {
+	TelegramID   int64
+	SecondsStart time.Time
+	SecondsEnd   time.Time
+	Hours        int64
+	Minutes      int64
+	Breaks       string
+}
+
+// ParamsWelcomeMessage ???
+type ParamsWelcomeMessage struct {
+	TelegramID int64
 }
 
 // NewTelegramNotifier Конструктор для создания Telegram-нотификатора
 func NewTelegramNotifier(
-	logger log.Logger,
-	tgConfig config.TelegramBotConfig,
-) (*Notifier, error) {
-	bot, err := initTelegramBot(tgConfig.GetToken())
-	if err != nil {
-		return nil, fmt.Errorf("error creating telegram bot: %w", err)
-	}
-	_ = logger.Log("notifier", "telegram", "name", bot.Self.UserName, "msg", "authorized on account")
-
-	err = setWebhook(bot, tgConfig.GetWebhookLink())
-	if err != nil {
-		return nil, fmt.Errorf("error setting telegram webhook: %w", err)
-	}
-	_ = logger.Log(
-		"notifier", "telegram",
-		"name", bot.Self.UserName,
-		"msg", "setting webhook",
-		"url", tgConfig.GetWebhookLink(),
-	)
-
-	return &Notifier{logger: logger, Bot: bot}, nil
+	bot *TGBotAPI.BotAPI,
+	factory command.Factory,
+) (notifierI.Notifier, error) {
+	return &notifier{bot: bot, factory: factory}, nil
 }
 
-// GetBot Получение Telegram Bot API
-func (tn *Notifier) GetBot() *tgbotapi.BotAPI {
-	return tn.Bot
+// Bot Получение Telegram Bot API
+func (tn *notifier) Bot() *TGBotAPI.BotAPI {
+	return tn.bot
 }
 
-func initTelegramBot(token string) (*tgbotapi.BotAPI, error) {
-	bot, err := tgbotapi.NewBotAPI(token)
-	if err != nil {
-		return nil, fmt.Errorf("init telegram bot: %w", err)
-	}
-
-	return bot, nil
-}
-
-func setWebhook(bot *tgbotapi.BotAPI, webhookPath string) error {
-	_, err := bot.SetWebhook(tgbotapi.NewWebhook(webhookPath))
-	if err != nil {
-		return fmt.Errorf("set telegram webhook: %w", err)
-	}
-
-	//info, err := bot.GetWebhookInfo()
-	_, err = bot.GetWebhookInfo()
-	if err != nil {
-		return fmt.Errorf("get telegram webhook info: %w", err)
-	}
-	/*if info.LastErrorDate != 0 {
-		return fmt.Errorf("telegram callback failed: %s", info.LastErrorMessage)
-	}*/
-
-	return nil
+func (tn *notifier) Factory() command.Factory {
+	return tn.factory
 }
 
 // SetKeyboard ???
-func (*Notifier) SetKeyboard(message tgbotapi.MessageConfig) tgbotapi.MessageConfig {
-	message.ReplyMarkup = tgbotapi.NewReplyKeyboard(
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(string(buttonWorkingTime)),
-			tgbotapi.NewKeyboardButton(string(buttonStatCurrentWorkingPeriod)),
+func (notifier) SetKeyboard(message TGBotAPI.MessageConfig) TGBotAPI.MessageConfig {
+	message.ReplyMarkup = TGBotAPI.NewReplyKeyboard(
+		TGBotAPI.NewKeyboardButtonRow(
+			TGBotAPI.NewKeyboardButton(string(command.ButtonWorkingTime)),
+			TGBotAPI.NewKeyboardButton(string(command.ButtonStatCurrentWorkingPeriod)),
 		),
 	)
 	return message
 }
 
-// SendMessageCommand Метод для отправки сообщения в ответ на команду пользователя
-func (tn *Notifier) SendMessageCommand(ctx context.Context, update tgbotapi.Update) error {
-	command := NewCommand(MessageType(update.Message.Text), int64(update.Message.From.ID))
-	stringMessage, err := command.GetMessage(ctx)
-	if err != nil {
-		return fmt.Errorf("error getting text message: %w", err)
-	}
-	_, err = tn.Bot.Send(tn.SetKeyboard(tgbotapi.NewMessage(
-		int64(update.Message.From.ID),
-		stringMessage,
-	)))
-
-	if err != nil {
-		return fmt.Errorf("error send telegram message: %w", err)
-	}
-
-	return nil
-}
-
-// SendWelcomeMessage Метод отправки приветственного сообщения по приходу в офис / на работу.
-func (tn *Notifier) SendWelcomeMessage(ctx context.Context, telegramID int64) error {
-	command := NewCommand(welcome, telegramID)
-	stringMessage, err := command.GetMessage(ctx)
-	if err != nil {
-		return fmt.Errorf("error send welcome message: %w", err)
-	}
-	_, err = tn.Bot.Send(tn.SetKeyboard(tgbotapi.NewMessage(
+func (tn *notifier) SendMessage(text string, telegramID int64) error {
+	_, err := tn.Bot().Send(tn.SetKeyboard(TGBotAPI.NewMessage(
 		telegramID,
-		stringMessage,
+		text,
 	)))
 	if err != nil {
 		return fmt.Errorf("error send welcome message: %w", err)
 	}
-
-	return nil
-}
-
-// SendPreviousDayInfoMessage ???
-func (tn *Notifier) SendPreviousDayInfoMessage(_ context.Context) error {
-	// TODO: ?!
 
 	return nil
 }

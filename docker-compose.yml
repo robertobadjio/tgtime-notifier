@@ -1,5 +1,5 @@
 services:
-  tgtime-notifier-app:
+  app:
     env_file:
       - .env
     build:

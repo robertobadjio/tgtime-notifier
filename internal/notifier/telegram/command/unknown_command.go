@@ -4,10 +4,14 @@ import (
 	"context"
 )
 
-// UnknownCommand Неизвестная команда
-type UnknownCommand struct{}
+type unknownCommand struct{}
+
+// NewUnknownCommand ???
+func NewUnknownCommand() Command {
+	return &unknownCommand{}
+}
 
 // GetMessage Метод получения текста сообщения о неизвестной команде
-func (UnknownCommand) GetMessage(_ context.Context) (string, error) {
+func (unknownCommand) GetMessage(_ context.Context) (string, error) {
 	return "Неизвестная команда", nil
 }

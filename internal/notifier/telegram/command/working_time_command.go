@@ -3,46 +3,38 @@ package command
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
-	"github.com/go-kit/kit/log"
 	"github.com/robertobadjio/tgtime-aggregator/pkg/api/time_v1"
+
 	"github.com/robertobadjio/tgtime-notifier/internal/aggregator"
 	"github.com/robertobadjio/tgtime-notifier/internal/api_pb"
-	"github.com/robertobadjio/tgtime-notifier/internal/config"
 )
 
-// WorkingTimeCommand Команда "Рабочее время"
-type WorkingTimeCommand struct {
-	TelegramID int64
+type workingTimeCommand struct {
+	TGTimeAPIClient        api_pb.Client
+	TGTimeAggregatorClient aggregator.Client
+	TelegramID             int64
 }
 
-// GetMessage Метод получения текста команды
-func (wtc WorkingTimeCommand) GetMessage(ctx context.Context) (string, error) {
-	tgTimeAggregatorConfig, err := config.NewTgTimeAggregatorConfig()
-	if err != nil {
-		return "", fmt.Errorf("error loading config: %w", err)
+// NewWorkingTimeCommand ???
+func NewWorkingTimeCommand(TGTimeAPIClient api_pb.Client, TGTimeAggregatorClient aggregator.Client, telegramID int64) Command {
+	return &workingTimeCommand{
+		TGTimeAPIClient:        TGTimeAPIClient,
+		TGTimeAggregatorClient: TGTimeAggregatorClient,
+		TelegramID:             telegramID,
 	}
+}
 
-	tgTimeAPIConfig, err := config.NewTgTimeAPIConfig()
-	if err != nil {
-		return "", fmt.Errorf("error loading config: %w", err)
-	}
-
-	var logger log.Logger
-	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
-
-	aggregatorClient := aggregator.NewClient(tgTimeAggregatorConfig, logger)
-	apiClient := api_pb.NewClient(tgTimeAPIConfig, logger)
-	user, err := apiClient.GetUserByTelegramID(ctx, wtc.TelegramID)
+// GetMessage ???
+func (wtc *workingTimeCommand) GetMessage(ctx context.Context) (string, error) {
+	user, err := wtc.TGTimeAPIClient.GetUserByTelegramID(ctx, wtc.TelegramID)
 	if err != nil {
 		return "", fmt.Errorf("error getting user by telegram id: %w", err)
 	}
 
-	timeSummaryResponse, err := aggregatorClient.GetTimeSummary(
+	timeSummaryResponse, err := wtc.TGTimeAggregatorClient.GetTimeSummary(
 		ctx,
 		user.User.MacAddress,
 		getNow().Format("2006-01-02"),
