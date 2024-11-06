@@ -51,6 +51,32 @@ services:
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
     networks:
       - tgtime-notifier-network
+  prometheus:
+    image: prom/prometheus:v2.37.9
+    ports:
+      - "${PROMETHEUS_PORT}:${PROMETHEUS_PORT}"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alerts.yml:/etc/prometheus/alerts.yml
+      - prometheus_data:/prometheus
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - tgtime-notifier-network
+  grafana:
+    image: grafana/grafana-oss:10.0.3
+    ports:
+      - "${GRAFANA_PORT}:${GRAFANA_PORT}"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - tgtime-notifier-network
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:1.8.0
+    command: ["--kafka.server=kafka:${KAFKA_BROKER_1_PORT}"]
+    ports:
+      - 9308:9308
 
 networks:
   tgtime-notifier-network:

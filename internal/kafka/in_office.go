@@ -12,6 +12,10 @@ import (
 	"github.com/robertobadjio/tgtime-notifier/internal/notifier/telegram"
 )
 
+const inOfficeTopic = "in-office"
+
+const partition = 0
+
 // ConsumeInOffice Чтение сообщений из кафки о приходе сотрудника в офис / на работу
 func (k *Kafka) ConsumeInOffice(ctx context.Context) error {
 	r := k.buildReader(inOfficeTopic)
@@ -32,7 +36,7 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context) error {
 		}
 		userResponse, err := k.tgTimeAPIClient.GetUserByMacAddress(ctx, string(m.Value))
 		if err != nil {
-			fmt.Println("error getting user by mac address " + string(m.Value))
+			logger.Log("kafka", "read", "topic", inOfficeTopic, "error", err.Error(), "desc", "error getting user by mac address "+string(m.Value))
 			continue
 		}
 
@@ -41,7 +45,7 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context) error {
 			telegram.ParamsWelcomeMessage{TelegramID: userResponse.User.TelegramId},
 		)
 		if err != nil {
-			fmt.Println("error sending welcome message: ", err.Error())
+			logger.Log("kafka", "read", "topic", inOfficeTopic, "error", err.Error())
 		}
 	}
 
