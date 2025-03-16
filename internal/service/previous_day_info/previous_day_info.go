@@ -5,45 +5,43 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/robertobadjio/tgtime-notifier/internal/aggregator"
-	"github.com/robertobadjio/tgtime-notifier/internal/api_pb"
-	"github.com/robertobadjio/tgtime-notifier/internal/notifier"
-	"github.com/robertobadjio/tgtime-notifier/internal/notifier/telegram"
-	"github.com/robertobadjio/tgtime-notifier/internal/notifier/telegram/command"
-	"github.com/robertobadjio/tgtime-notifier/internal/task"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/client/aggregator"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram/command"
 )
 
-const taskName = "previous_day_info"
+// PreviousDayInfo ...
+type PreviousDayInfo interface {
+	Run(ctx context.Context) error
+}
 
-type previousDayInfoTask struct {
+type previousDayInfo struct {
 	tgTimeAPIClient        api_pb.Client
 	tgTimeAggregatorClient aggregator.Client
 	notifier               notifier.Notifier
 }
 
-// NewPreviousDayInfoTask ???
-func NewPreviousDayInfoTask(
+// NewPreviousDayInfo ???
+func NewPreviousDayInfo(
 	tgTimeAPIClient api_pb.Client,
 	tgTimeAggregatorClient aggregator.Client,
 	notifier notifier.Notifier,
-) task.Task {
-	return &previousDayInfoTask{
+) PreviousDayInfo {
+	return &previousDayInfo{
 		tgTimeAPIClient:        tgTimeAPIClient,
 		tgTimeAggregatorClient: tgTimeAggregatorClient,
 		notifier:               notifier,
 	}
 }
 
-// GetName ???
-func (t *previousDayInfoTask) GetName() string {
-	return taskName
-}
-
-func (t *previousDayInfoTask) Run(ctx context.Context) error {
-	timeSummaryResponse, err := t.tgTimeAggregatorClient.GetTimeSummary(
+// Run ...
+func (pdi *previousDayInfo) Run(ctx context.Context) error {
+	timeSummaryResponse, err := pdi.tgTimeAggregatorClient.GetTimeSummary(
 		ctx,
 		"",
-		getPreviousDate("Europe/Moscow").Format("2006-01-02"),
+		getPreviousDate("Europe/Moscow").Format(time.DateOnly),
 	)
 	if err != nil {
 		return fmt.Errorf("error getting time summary: %w", err)
@@ -53,7 +51,7 @@ func (t *previousDayInfoTask) Run(ctx context.Context) error {
 	}
 
 	for _, summaryByUser := range timeSummaryResponse.Summary {
-		user, err := t.tgTimeAPIClient.GetUserByMacAddress(ctx, summaryByUser.MacAddress)
+		user, err := pdi.tgTimeAPIClient.GetUserByMacAddress(ctx, summaryByUser.MacAddress)
 		if err != nil {
 			// TODO: log error
 			continue
@@ -62,7 +60,7 @@ func (t *previousDayInfoTask) Run(ctx context.Context) error {
 
 		hours, minutes := command.SecondsToHM(summaryByUser.GetSeconds())
 
-		err = t.notifier.SendPreviousDayInfoMessage(
+		err = pdi.notifier.SendPreviousDayInfoMessage(
 			ctx,
 			telegram.ParamsPreviousDayInfo{
 				TelegramID:   user.GetUser().TelegramId,

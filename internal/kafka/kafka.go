@@ -1,9 +1,9 @@
 package kafka
 
 import (
-	"github.com/robertobadjio/tgtime-notifier/internal/api_pb"
 	"github.com/robertobadjio/tgtime-notifier/internal/config"
-	"github.com/robertobadjio/tgtime-notifier/internal/notifier"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier"
 )
 
 // Kafka Клиент для подключения к кафке

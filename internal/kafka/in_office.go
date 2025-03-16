@@ -9,7 +9,7 @@ import (
 	kafkaLib "github.com/segmentio/kafka-go"
 
 	"github.com/robertobadjio/tgtime-notifier/internal/logger"
-	"github.com/robertobadjio/tgtime-notifier/internal/notifier/telegram"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
 )
 
 const inOfficeTopic = "in-office"
@@ -26,30 +26,33 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context) error {
 	}()
 
 	for {
-		m, err := r.ReadMessage(ctx)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("exit from consumer in office: %w", ctx.Err())
+		default:
+			m, err := r.ReadMessage(ctx)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break // TODO: ?
+				}
+
+				return fmt.Errorf("reading message: %w", err)
+			}
+			userResponse, err := k.tgTimeAPIClient.GetUserByMacAddress(ctx, string(m.Value))
+			if err != nil {
+				logger.Log("kafka", "read", "topic", inOfficeTopic, "error", err.Error(), "desc", "error getting user by mac address "+string(m.Value))
+				continue
 			}
 
-			return fmt.Errorf("reading message: %w", err)
-		}
-		userResponse, err := k.tgTimeAPIClient.GetUserByMacAddress(ctx, string(m.Value))
-		if err != nil {
-			logger.Log("kafka", "read", "topic", inOfficeTopic, "error", err.Error(), "desc", "error getting user by mac address "+string(m.Value))
-			continue
-		}
-
-		err = k.notifier.SendWelcomeMessage(
-			ctx,
-			telegram.ParamsWelcomeMessage{TelegramID: userResponse.User.TelegramId},
-		)
-		if err != nil {
-			logger.Log("kafka", "read", "topic", inOfficeTopic, "error", err.Error())
+			err = k.notifier.SendWelcomeMessage(
+				ctx,
+				telegram.ParamsWelcomeMessage{TelegramID: userResponse.User.TelegramId},
+			)
+			if err != nil {
+				logger.Log("kafka", "read", "topic", inOfficeTopic, "error", err.Error())
+			}
 		}
 	}
-
-	return nil
 }
 
 func (k *Kafka) buildReader(topicName string) *kafkaLib.Reader {

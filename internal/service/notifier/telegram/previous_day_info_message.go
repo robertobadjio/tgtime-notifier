@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	notifierI "github.com/robertobadjio/tgtime-notifier/internal/notifier"
+	notifierI "github.com/robertobadjio/tgtime-notifier/internal/service/notifier"
 )
 
 // SendPreviousDayInfoMessage ???

@@ -10,12 +10,15 @@ export GOARCH=amd64
 help: ## Help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+install-deps-mac: ## Install dependencies for Mac
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s v1.64.5
+
 fmt: ## Automatically format source code
 	go fmt ./...
 .PHONY:fmt
 
 lint: fmt ## Check code (lint)
-	golangci-lint run ./... --config .golangci.pipeline.yaml
+	./bin/golangci-lint run ./... --config .golangci.pipeline.yaml
 .PHONY:lint
 
 vet: fmt ## Check code (vet)

@@ -14,6 +14,6 @@ scrape_configs:
     static_configs:
       - targets: ["app:2112"]
 
-  - job_name: "postgres"
+  - job_name: "kafka"
     static_configs:
-      - targets: ["postgresql_exporter:9187"]
+      - targets: ["kafka-exporter:9308"]

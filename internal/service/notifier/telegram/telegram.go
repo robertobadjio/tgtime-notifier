@@ -6,14 +6,15 @@ import (
 
 	TGBotAPI "github.com/go-telegram-bot-api/telegram-bot-api"
 
-	notifierI "github.com/robertobadjio/tgtime-notifier/internal/notifier"
-	"github.com/robertobadjio/tgtime-notifier/internal/notifier/telegram/command"
+	"github.com/robertobadjio/tgtime-notifier/internal/metric"
+	notifierI "github.com/robertobadjio/tgtime-notifier/internal/service/notifier"
+	command2 "github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram/command"
 )
 
 // TgNotifier Telegram-нотификатор
 type notifier struct {
 	bot     *TGBotAPI.BotAPI
-	factory command.Factory
+	factory command2.Factory
 }
 
 // ParamsUpdate ???
@@ -43,7 +44,7 @@ type ParamsWelcomeMessage struct {
 // NewTelegramNotifier Конструктор для создания Telegram-нотификатора
 func NewTelegramNotifier(
 	bot *TGBotAPI.BotAPI,
-	factory command.Factory,
+	factory command2.Factory,
 ) (notifierI.Notifier, error) {
 	return &notifier{bot: bot, factory: factory}, nil
 }
@@ -53,29 +54,32 @@ func (tn *notifier) Bot() *TGBotAPI.BotAPI {
 	return tn.bot
 }
 
-func (tn *notifier) Factory() command.Factory {
+func (tn *notifier) Factory() command2.Factory {
 	return tn.factory
 }
 
 // SetKeyboard ???
-func (notifier) SetKeyboard(message TGBotAPI.MessageConfig) TGBotAPI.MessageConfig {
+func (tn *notifier) SetKeyboard(message TGBotAPI.MessageConfig) TGBotAPI.MessageConfig {
 	message.ReplyMarkup = TGBotAPI.NewReplyKeyboard(
 		TGBotAPI.NewKeyboardButtonRow(
-			TGBotAPI.NewKeyboardButton(string(command.ButtonWorkingTime)),
-			TGBotAPI.NewKeyboardButton(string(command.ButtonStatCurrentWorkingPeriod)),
+			TGBotAPI.NewKeyboardButton(string(command2.ButtonWorkingTime)),
+			TGBotAPI.NewKeyboardButton(string(command2.ButtonStatCurrentWorkingPeriod)),
 		),
 	)
 	return message
 }
 
+// SendMessage ...
 func (tn *notifier) SendMessage(text string, telegramID int64) error {
 	_, err := tn.Bot().Send(tn.SetKeyboard(TGBotAPI.NewMessage(
 		telegramID,
 		text,
 	)))
 	if err != nil {
-		return fmt.Errorf("error send welcome message: %w", err)
+		return fmt.Errorf("error send message: %w", err)
 	}
+
+	metric.IncMessageCounter()
 
 	return nil
 }

@@ -2,9 +2,8 @@ package command
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-
-	"github.com/robertobadjio/tgtime-notifier/internal/aggregator"
-	"github.com/robertobadjio/tgtime-notifier/internal/api_pb"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/client/aggregator"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
 )
 
 // Factory ???

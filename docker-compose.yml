@@ -7,12 +7,20 @@ services:
       dockerfile: ./docker/app/Dockerfile
     container_name: tgtime-notifier-app
     ports:
-      - "${HTTP_PORT}:${HTTP_PORT}"
+      - "${HTTP_PORT}:8081"
+      - "${PROMETHEUS_APP_PORT}:2112"
     networks:
       - tgtime-notifier-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${HTTP_PORT}/liveness"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     depends_on:
       tgtime-api:
         condition: service_healthy
+
   tgtime-api:
     build:
       context: .
@@ -31,14 +39,16 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:7.9.0
     environment:
       - ZOOKEEPER_CLIENT_PORT=2181
     networks:
       - tgtime-notifier-network
+
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.9.0
     container_name: kafka
     depends_on:
       - zookeeper
@@ -51,10 +61,11 @@ services:
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
     networks:
       - tgtime-notifier-network
+
   prometheus:
     image: prom/prometheus:v2.37.9
     ports:
-      - "${PROMETHEUS_PORT}:${PROMETHEUS_PORT}"
+      - "${PROMETHEUS_PORT}:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./alerts.yml:/etc/prometheus/alerts.yml
@@ -64,20 +75,30 @@ services:
         condition: service_healthy
     networks:
       - tgtime-notifier-network
+
   grafana:
     image: grafana/grafana-oss:10.0.3
     ports:
-      - "${GRAFANA_PORT}:${GRAFANA_PORT}"
+      - "${GRAFANA_PORT}:3000"
     volumes:
       - grafana_data:/var/lib/grafana
     networks:
       - tgtime-notifier-network
+
   kafka-exporter:
-    image: danielqsj/kafka-exporter:1.8.0
+    image: danielqsj/kafka-exporter:v1.8.0
     command: ["--kafka.server=kafka:${KAFKA_BROKER_1_PORT}"]
+    depends_on:
+      - kafka
+    networks:
+      - tgtime-notifier-network
     ports:
       - 9308:9308
 
 networks:
   tgtime-notifier-network:
     driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:

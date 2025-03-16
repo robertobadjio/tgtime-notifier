@@ -1,22 +1,31 @@
 package app
 
 import (
+	"context"
+	"net/http"
+
 	TGBotAPI "github.com/go-telegram-bot-api/telegram-bot-api"
 
-	"github.com/robertobadjio/tgtime-notifier/internal/aggregator"
-	"github.com/robertobadjio/tgtime-notifier/internal/api_pb"
+	"github.com/robertobadjio/tgtime-notifier/internal/api"
+	"github.com/robertobadjio/tgtime-notifier/internal/api/notifier/endpoints"
+	"github.com/robertobadjio/tgtime-notifier/internal/api/notifier/transport"
 	"github.com/robertobadjio/tgtime-notifier/internal/config"
 	"github.com/robertobadjio/tgtime-notifier/internal/kafka"
 	"github.com/robertobadjio/tgtime-notifier/internal/logger"
-	notifierI "github.com/robertobadjio/tgtime-notifier/internal/notifier"
-	"github.com/robertobadjio/tgtime-notifier/internal/notifier/telegram"
-	"github.com/robertobadjio/tgtime-notifier/internal/notifier/telegram/command"
-	"github.com/robertobadjio/tgtime-notifier/internal/task"
-	"github.com/robertobadjio/tgtime-notifier/internal/task/previous_day_info"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/client/aggregator"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
+	notifierI "github.com/robertobadjio/tgtime-notifier/internal/service/notifier"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram/command"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/previous_day_info"
 )
 
 type serviceProvider struct {
 	httpConfig config.HTTPConfig
+
+	httpServiceHandler  http.Handler
+	endpointsServiceSet endpoints.Set
+	service             api.Service
 
 	tgConfig         config.TelegramBotConfig
 	tgBot            *TGBotAPI.BotAPI
@@ -32,13 +41,37 @@ type serviceProvider struct {
 	tgTimeAggregatorConfig config.TgTimeAggregatorConfig
 	tgTimeAggregatorClient aggregator.Client
 
-	previousDayInfoTask task.Task
+	previousDayInfo previous_day_info.PreviousDayInfo
+
+	promConfig config.PromConfig
 }
 
 func newServiceProvider() *serviceProvider {
 	return &serviceProvider{}
 }
 
+func (sp *serviceProvider) HTTPServiceHandler(ctx context.Context) http.Handler {
+	if sp.httpServiceHandler == nil {
+		sp.httpServiceHandler = transport.NewHTTPHandler(sp.EndpointsServiceSet(ctx))
+	}
+
+	return sp.httpServiceHandler
+}
+
+func (sp *serviceProvider) EndpointsServiceSet(ctx context.Context) endpoints.Set {
+	sp.endpointsServiceSet = endpoints.NewEndpointSet(sp.APIService(ctx))
+
+	return sp.endpointsServiceSet
+}
+
+func (sp *serviceProvider) APIService(_ context.Context) api.Service {
+	if sp.service == nil {
+		sp.service = api.NewNotifierService()
+	}
+	return sp.service
+}
+
+// HTTPConfig ...
 func (sp *serviceProvider) HTTPConfig() config.HTTPConfig {
 	if sp.httpConfig == nil {
 		httpConfig, err := config.NewHTTPConfig()
@@ -50,6 +83,20 @@ func (sp *serviceProvider) HTTPConfig() config.HTTPConfig {
 	}
 
 	return sp.httpConfig
+}
+
+// PromConfig ...
+func (sp *serviceProvider) PromConfig() config.PromConfig {
+	if sp.promConfig == nil {
+		promConfig, err := config.NewPromConfig()
+		if err != nil {
+			logger.Fatal("di", "prometheus", "error", err.Error())
+		}
+
+		sp.promConfig = promConfig
+	}
+
+	return sp.promConfig
 }
 
 func (sp *serviceProvider) KafkaConfig() config.KafkaConfig {
@@ -93,10 +140,24 @@ func (sp *serviceProvider) TGNotifier() notifierI.Notifier {
 
 func (sp *serviceProvider) TgBot() *TGBotAPI.BotAPI {
 	if sp.tgBot == nil {
-		bot, err := TGBotAPI.NewBotAPI(sp.tgConfig.GetToken())
+		bot, err := TGBotAPI.NewBotAPI(sp.TelegramConfig().GetToken())
 		if err != nil {
 			logger.Fatal("di", "tgBot", "error", err.Error())
 		}
+
+		_, err = bot.SetWebhook(TGBotAPI.NewWebhook(sp.TelegramConfig().GetWebhookLink()))
+		if err != nil {
+			logger.Fatal("di", "tgBot", "type", "set telegram webhook", "error", err.Error())
+		}
+
+		//info, err := bot.GetWebhookInfo()
+		_, err = bot.GetWebhookInfo()
+		if err != nil {
+			logger.Fatal("di", "tgBot", "type", "get telegram webhook", "error", err.Error())
+		}
+		/*if info.LastErrorDate != 0 {
+			return fmt.Errorf("telegram callback failed: %s", info.LastErrorMessage)
+		}*/
 
 		sp.tgBot = bot
 	}
@@ -154,16 +215,16 @@ func (sp *serviceProvider) TGTimeAggregatorClient() aggregator.Client {
 	return sp.tgTimeAggregatorClient
 }
 
-func (sp *serviceProvider) PreviousDayInfoTask() task.Task {
-	if sp.previousDayInfoTask == nil {
-		sp.previousDayInfoTask = previous_day_info.NewPreviousDayInfoTask(
+func (sp *serviceProvider) PreviousDayInfo() previous_day_info.PreviousDayInfo {
+	if sp.previousDayInfo == nil {
+		sp.previousDayInfo = previous_day_info.NewPreviousDayInfo(
 			sp.TGTimeAPIClient(),
 			sp.TGTimeAggregatorClient(),
 			sp.TGNotifier(),
 		)
 	}
 
-	return sp.previousDayInfoTask
+	return sp.previousDayInfo
 }
 
 func (sp *serviceProvider) TGCommandFactory() command.Factory {

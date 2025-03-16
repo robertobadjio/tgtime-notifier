@@ -8,8 +8,8 @@ import (
 
 	"github.com/robertobadjio/tgtime-aggregator/pkg/api/time_v1"
 
-	"github.com/robertobadjio/tgtime-notifier/internal/aggregator"
-	"github.com/robertobadjio/tgtime-notifier/internal/api_pb"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/client/aggregator"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
 )
 
 type workingTimeCommand struct {

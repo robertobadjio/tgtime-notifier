@@ -3,28 +3,32 @@ package app
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	TGBotAPI "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/oklog/oklog/pkg/group"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/robertobadjio/tgtime-notifier/internal/logger"
-	"github.com/robertobadjio/tgtime-notifier/internal/notifier/telegram"
+	"github.com/robertobadjio/tgtime-notifier/internal/metric"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
 )
 
 // App ???
 type App struct {
 	serviceProvider *serviceProvider
-	apiGateway      group.Group
+	gGroup          group.Group
 }
 
 // NewApp ???
 func NewApp(ctx context.Context) (*App, error) {
-	a := &App{}
+	a := &App{
+		gGroup: group.Group{},
+	}
 
 	err := a.initDeps(ctx)
 	if err != nil {
@@ -37,11 +41,12 @@ func NewApp(ctx context.Context) (*App, error) {
 func (a *App) initDeps(ctx context.Context) error {
 	inits := []func(context.Context) error{
 		a.initServiceProvider,
+		a.initCancelInterrupt,
 		a.initAPIGateway,
-		a.initTGBot,
 		a.initTGUpdateHandle,
 		a.initCheckInOfficeConsumer,
-		a.initCheckPreviousDayInfoTask,
+		a.initCheckPreviousDayInfo,
+		a.initPrometheus,
 	}
 
 	for _, f := range inits {
@@ -63,61 +68,65 @@ func (a *App) initServiceProvider(_ context.Context) error {
 	return nil
 }
 
-func (a *App) initAPIGateway(_ context.Context) error {
-	var g group.Group
-	{
-		srv := &http.Server{
-			Addr:         a.serviceProvider.HTTPConfig().Address(),
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 10 * time.Second,
-		}
+func (a *App) initAPIGateway(ctx context.Context) error {
+	srv := &http.Server{
+		Addr:         a.serviceProvider.HTTPConfig().Address(),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+	a.gGroup.Add(func() error {
 		logger.Log("transport", "HTTP", "addr", a.serviceProvider.HTTPConfig().Address())
 		err := srv.ListenAndServe()
 		if err != nil {
-			logger.Error("telegram", "updates", "type", "serve", "msg", err)
+			return fmt.Errorf("could not listen and serve HTTP server: %w", err)
 		}
-	}
-	{
-		cancelInterrupt := make(chan struct{})
-		g.Add(func() error {
-			c := make(chan os.Signal, 1)
-			signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-			select {
-			case sig := <-c:
-				return fmt.Errorf("received signal %s", sig)
-			case <-cancelInterrupt:
-				return nil
-			}
-		}, func(error) {
-			close(cancelInterrupt)
-		})
-	}
 
-	a.apiGateway = g
+		return nil
+	}, func(err error) {
+		logger.Info("component", "APIGateway", "err", err.Error())
+		_ = srv.Shutdown(ctx)
+	})
 
 	return nil
 }
 
 func (a *App) initCheckInOfficeConsumer(ctx context.Context) error {
-	a.apiGateway.Add(
+	ctxWithCancel, cancel := context.WithCancel(ctx)
+	a.gGroup.Add(
 		func() error {
-			err := a.serviceProvider.Kafka().ConsumeInOffice(ctx)
+			err := a.serviceProvider.Kafka().ConsumeInOffice(ctxWithCancel)
 			if err != nil {
 				return fmt.Errorf("error on kafka consumer in office message %w", err)
 			}
 			return nil
 		}, func(err error) {
 			logger.Error("transport", "GRPC", "component", "API", "during", "Listen", "err", err.Error())
-			// TODO: !?
+			cancel()
 		},
 	)
 	return nil
 }
 
-func (a *App) initCheckPreviousDayInfoTask(ctx context.Context) error {
-	a.apiGateway.Add(
+func (a *App) initCheckPreviousDayInfo(ctx context.Context) error {
+	ticker := time.NewTicker(1 * time.Minute)
+
+	a.gGroup.Add(
 		func() error {
-			t := time.Now()
+			for {
+				select {
+				case <-ticker.C:
+					h, m, _ := time.Now().Clock()
+					if h == 12 && m == 0 {
+						err := a.serviceProvider.PreviousDayInfo().Run(ctx)
+						if err != nil {
+							logger.Error("telegram", "updates", "type", "previous day info", "msg", err.Error())
+						}
+					}
+				case <-ctx.Done():
+					return fmt.Errorf("context canceled: %s", ctx.Err())
+				}
+			}
+			/*t := time.Now()
 			n := time.Date(t.Year(), t.Month(), t.Day(), 12, 0, 0, 0, t.Location())
 			d := n.Sub(t)
 			if d < 0 {
@@ -128,69 +137,71 @@ func (a *App) initCheckPreviousDayInfoTask(ctx context.Context) error {
 				time.Sleep(d)
 				d = 24 * time.Hour
 
-				err := a.serviceProvider.PreviousDayInfoTask().Run(ctx)
+				err := a.serviceProvider.PreviousDayInfo().Run(ctx)
 				if err != nil {
 					logger.Error("telegram", "updates", "type", "previous day info", "msg", err.Error())
 				}
-			}
+			}*/
 		}, func(err error) {
-			logger.Error("transport", "GRPC", "component", "API", "during", "Listen", "err", err.Error())
-			// TODO: ?!
+			logger.Error("component", "previous day info", "err", err.Error())
+			ticker.Stop()
 		})
 
 	return nil
 }
 
-func (a *App) initTGBot(_ context.Context) error {
-	a.apiGateway.Add(
-		func() error {
-			TGBot := a.serviceProvider.TgBot()
-			logger.Log("notifier", "telegram", "name", TGBot.Self.UserName, "msg", "authorized on account")
-
-			err := a.TGBotSetWebhook(TGBot)
-			if err != nil {
-				return fmt.Errorf("error setting webhook: %w", err)
-			}
-
-			logger.Log(
-				"notifier", "telegram",
-				"name", TGBot.Self.UserName,
-				"msg", "setting webhook",
-				"url", a.serviceProvider.tgConfig.GetWebhookLink(),
-			)
-
+func (a *App) initCancelInterrupt(_ context.Context) error {
+	cancelInterrupt := make(chan struct{})
+	a.gGroup.Add(func() error {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		select {
+		case sig := <-c:
+			return fmt.Errorf("received signal %s", sig)
+		case <-cancelInterrupt:
 			return nil
-		}, func(err error) {
-			logger.Error("transport", "GRPC", "component", "API", "during", "Listen", "err", err.Error())
-			// TODO: !?
-		},
-	)
+		}
+	}, func(error) {
+		logger.Info("component", "cancel interrupt", "err", "context canceled")
+		close(cancelInterrupt)
+	})
+
 	return nil
 }
 
 func (a *App) initTGUpdateHandle(ctx context.Context) error {
-	a.apiGateway.Add(
+	srv := &http.Server{
+		Addr:         a.serviceProvider.HTTPConfig().Address(),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
+	a.gGroup.Add(
 		func() error {
-			srv := &http.Server{
-				Addr:         a.serviceProvider.HTTPConfig().Address(),
-				ReadTimeout:  5 * time.Second,
-				WriteTimeout: 10 * time.Second,
-			}
 			logger.Log("transport", "HTTP", "addr", a.serviceProvider.HTTPConfig().Address())
 			err := srv.ListenAndServe()
 			if err != nil {
-				return fmt.Errorf("error starting server hadle telegram updates %w", err)
+				return fmt.Errorf("error starting server handle telegram updates %w", err)
 			}
 
 			return nil
 		}, func(err error) {
-			logger.Error("transport", "GRPC", "component", "API", "during", "Listen", "err", err.Error())
-			// TODO: !?
+			logger.Error("component", "server handle telegram updates", "err", err.Error())
+			_ = srv.Shutdown(ctx)
 		},
 	)
-	a.apiGateway.Add(
+
+	logger.Log("notifier", "telegram", "name", a.serviceProvider.TgBot().Self.UserName, "msg", "authorized on account")
+	logger.Log(
+		"notifier", "telegram",
+		"name", a.serviceProvider.TgBot().Self.UserName,
+		"msg", "setting webhook",
+		"url", a.serviceProvider.tgConfig.GetWebhookLink(),
+	)
+
+	updates := a.serviceProvider.TgBot().ListenForWebhook("/" + a.serviceProvider.TelegramConfig().GetWebhookPath())
+	a.gGroup.Add(
 		func() error {
-			updates := a.serviceProvider.TgBot().ListenForWebhook("/" + a.serviceProvider.TelegramConfig().GetWebhookPath())
 			for update := range updates {
 				if update.Message == nil {
 					continue
@@ -203,33 +214,50 @@ func (a *App) initTGUpdateHandle(ctx context.Context) error {
 			}
 			return nil
 		}, func(err error) {
-			logger.Error("transport", "GRPC", "component", "API", "during", "Listen", "err", err.Error())
-			// TODO: !?
+			logger.Error("component", "tg bot updates", "err", err.Error())
+			a.serviceProvider.TgBot().StopReceivingUpdates()
 		},
 	)
 	return nil
 }
 
-// TGBotSetWebhook ???
-func (a *App) TGBotSetWebhook(bot *TGBotAPI.BotAPI) error {
-	_, err := bot.SetWebhook(TGBotAPI.NewWebhook(a.serviceProvider.tgConfig.GetWebhookLink()))
+func (a *App) initPrometheus(ctx context.Context) error {
+	err := metric.Init(ctx)
 	if err != nil {
-		return fmt.Errorf("set telegram webhook: %w", err)
+		return err
 	}
 
-	//info, err := bot.GetWebhookInfo()
-	_, err = bot.GetWebhookInfo()
+	httpListener, err := net.Listen("tcp", a.serviceProvider.PromConfig().Address())
 	if err != nil {
-		return fmt.Errorf("get telegram webhook info: %w", err)
+		return err
 	}
-	/*if info.LastErrorDate != 0 {
-		return fmt.Errorf("telegram callback failed: %s", info.LastErrorMessage)
-	}*/
+
+	a.gGroup.Add(func() error {
+		logger.Info(
+			"transport", "HTTP",
+			"component", "prometheus",
+			"addr", a.serviceProvider.PromConfig().Address(),
+		)
+
+		sm := http.NewServeMux()
+		sm.Handle(a.serviceProvider.PromConfig().Path(), promhttp.Handler())
+
+		srv := &http.Server{
+			Handler:      sm,
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
+
+		return srv.Serve(httpListener)
+	}, func(err error) {
+		logger.Error("transport", "HTTP", "component", "prometheus", "during", "listen", "err", err.Error())
+		_ = httpListener.Close()
+	})
 
 	return nil
 }
 
 // Run ???
 func (a *App) Run() error {
-	return a.apiGateway.Run()
+	return a.gGroup.Run()
 }
