@@ -1,0 +1,19 @@
+pools:
+  - id: HTTP pool
+    gun:
+      type: http
+      target: 127.0.0.1:8081
+    ammo:
+      type: http/json
+      file: ./pandora/ammo
+    result:
+      type: phout
+      destination: ./pandora/phout.log
+    rps:
+      type: line
+      from: 5
+      to: 7
+      duration: 60s
+    startup:
+      type: once
+      times: 7

@@ -69,19 +69,21 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initAPIGateway(ctx context.Context) error {
+	httpListener, err := net.Listen("tcp", a.serviceProvider.HTTPConfig().Address())
+	if err != nil {
+		return err
+	}
+
 	srv := &http.Server{
-		Addr:         a.serviceProvider.HTTPConfig().Address(),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
+		Handler:      a.serviceProvider.HTTPServiceHandler(ctx),
 	}
-	a.gGroup.Add(func() error {
-		logger.Log("transport", "HTTP", "addr", a.serviceProvider.HTTPConfig().Address())
-		err := srv.ListenAndServe()
-		if err != nil {
-			return fmt.Errorf("could not listen and serve HTTP server: %w", err)
-		}
 
-		return nil
+	logger.Log("transport", "HTTP", "addr", a.serviceProvider.HTTPConfig().Address())
+
+	a.gGroup.Add(func() error {
+		return srv.Serve(httpListener)
 	}, func(err error) {
 		logger.Info("component", "APIGateway", "err", err.Error())
 		_ = srv.Shutdown(ctx)
@@ -170,7 +172,7 @@ func (a *App) initCancelInterrupt(_ context.Context) error {
 }
 
 func (a *App) initTGUpdateHandle(ctx context.Context) error {
-	srv := &http.Server{
+	/*srv := &http.Server{
 		Addr:         a.serviceProvider.HTTPConfig().Address(),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
@@ -189,7 +191,7 @@ func (a *App) initTGUpdateHandle(ctx context.Context) error {
 			logger.Error("component", "server handle telegram updates", "err", err.Error())
 			_ = srv.Shutdown(ctx)
 		},
-	)
+	)*/
 
 	logger.Log("notifier", "telegram", "name", a.serviceProvider.TgBot().Self.UserName, "msg", "authorized on account")
 	logger.Log(

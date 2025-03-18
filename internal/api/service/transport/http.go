@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/http/pprof"
 
 	httpTransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 
-	"github.com/robertobadjio/tgtime-notifier/internal/api/notifier/endpoints"
+	"github.com/robertobadjio/tgtime-notifier/internal/api/service/endpoints"
 )
 
 type errorer interface {
@@ -39,6 +40,10 @@ func NewHTTPHandler(ep endpoints.Set) http.Handler {
 		encodeResponse,
 		opt...,
 	))
+
+	router.Methods(http.MethodGet).Path("/debug/pprof/profile").HandlerFunc(pprof.Profile)
+	router.Methods(http.MethodGet).Path("/debug/pprof/trace").HandlerFunc(pprof.Trace)
+	router.Methods(http.MethodGet).Path("/debug/pprof/heap").Handler(pprof.Handler("heap"))
 
 	return router
 }

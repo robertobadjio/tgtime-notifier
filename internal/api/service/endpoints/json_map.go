@@ -9,10 +9,6 @@ type LivenessResponse struct {
 	Err  string `json:"err,omitempty"`
 }
 
-/*func (r LivenessResponse) Error() error {
-	return r.Err
-}*/
-
 // ReadinessRequest ...
 type ReadinessRequest struct{}
 
@@ -21,7 +17,3 @@ type ReadinessResponse struct {
 	Code int    `json:"status"`
 	Err  string `json:"err,omitempty"`
 }
-
-/*func (r ReadinessResponse) Error() error {
-	return r.Err
-}*/

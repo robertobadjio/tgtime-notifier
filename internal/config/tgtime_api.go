@@ -24,9 +24,6 @@ type tgTimeAPIConfig struct {
 // NewTgTimeAPIConfig ???
 func NewTgTimeAPIConfig() (TgTimeAPIConfig, error) {
 	host := os.Getenv(tgTimeAPIHost)
-	if len(host) == 0 {
-		return nil, fmt.Errorf("environment variable %s must be set", tgTimeAPIHost)
-	}
 
 	port := os.Getenv(tgTimeAPIPort)
 	if len(port) == 0 {

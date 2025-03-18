@@ -1,4 +1,10 @@
 .idea
 .env
+
 bin/*
 !bin/.gitkeep
+
+pprof/*
+!pprof/.gitkeep
+
+pandora/phout.log

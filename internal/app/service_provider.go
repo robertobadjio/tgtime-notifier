@@ -7,8 +7,8 @@ import (
 	TGBotAPI "github.com/go-telegram-bot-api/telegram-bot-api"
 
 	"github.com/robertobadjio/tgtime-notifier/internal/api"
-	"github.com/robertobadjio/tgtime-notifier/internal/api/notifier/endpoints"
-	"github.com/robertobadjio/tgtime-notifier/internal/api/notifier/transport"
+	"github.com/robertobadjio/tgtime-notifier/internal/api/service/endpoints"
+	"github.com/robertobadjio/tgtime-notifier/internal/api/service/transport"
 	"github.com/robertobadjio/tgtime-notifier/internal/config"
 	"github.com/robertobadjio/tgtime-notifier/internal/kafka"
 	"github.com/robertobadjio/tgtime-notifier/internal/logger"

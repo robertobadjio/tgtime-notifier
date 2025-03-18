@@ -24,9 +24,6 @@ type tgTimeAggregatorConfig struct {
 // NewTgTimeAggregatorConfig ???
 func NewTgTimeAggregatorConfig() (TgTimeAggregatorConfig, error) {
 	host := os.Getenv(tgTimeAggregatorHost)
-	if len(host) == 0 {
-		return nil, fmt.Errorf("environment variable %s must be set", tgTimeAggregatorHost)
-	}
 
 	port := os.Getenv(tgTimeAggregatorPort)
 	if len(port) == 0 {
