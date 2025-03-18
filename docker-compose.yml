@@ -7,8 +7,8 @@ services:
       dockerfile: ./docker/app/Dockerfile
     container_name: tgtime-notifier-app
     ports:
-      - "${HTTP_PORT}:8081"
-      - "${PROMETHEUS_APP_PORT}:2112"
+      - "${HTTP_PORT}:${HTTP_PORT}"
+      - "${PROMETHEUS_APP_PORT}:${PROMETHEUS_APP_PORT}"
     networks:
       - tgtime-notifier-network
     healthcheck:
@@ -25,8 +25,7 @@ services:
     build:
       context: .
       dockerfile: ./docker/tgtime-api/Dockerfile
-    ports:
-      - "${TGTIME_API_PORT}:1080"
+    command: -serverPort ${TGTIME_API_PORT}
     environment:
       MOCKSERVER_INITIALIZATION_JSON_PATH: /config/initializerJson.json
       MOCKSERVER_LOG_LEVEL: INFO
@@ -37,7 +36,7 @@ services:
     networks:
       - tgtime-notifier-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1080/liveness/probe"]
+      test: ["CMD", "curl", "-f", "http://localhost:${TGTIME_API_PORT}/liveness/probe"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -63,11 +62,25 @@ services:
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
     networks:
       - tgtime-notifier-network
+    healthcheck:
+      test: nc -z localhost 9092 || exit -1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.8.0
+    command: ["--kafka.server=kafka:9092"]
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - tgtime-notifier-network
 
   prometheus:
     image: prom/prometheus:v2.37.9
     ports:
-      - "${PROMETHEUS_PORT}:9090"
+      - "${PROMETHEUS_PORT}:9090" # UI
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./alerts.yml:/etc/prometheus/alerts.yml
@@ -81,21 +94,13 @@ services:
   grafana:
     image: grafana/grafana-oss:10.0.3
     ports:
-      - "${GRAFANA_PORT}:3000"
+      - "${GRAFANA_PORT}:3000" # UI
     volumes:
       - grafana_data:/var/lib/grafana
     networks:
       - tgtime-notifier-network
-
-  kafka-exporter:
-    image: danielqsj/kafka-exporter:v1.8.0
-    command: ["--kafka.server=kafka:${KAFKA_BROKER_1_PORT}"]
     depends_on:
-      - kafka
-    networks:
-      - tgtime-notifier-network
-    ports:
-      - 9308:9308
+      - prometheus
 
 networks:
   tgtime-notifier-network:

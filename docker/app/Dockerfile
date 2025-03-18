@@ -18,6 +18,7 @@ FROM scratch
 COPY --from=build /usr/share/zoneinfo/Europe/Moscow /usr/share/zoneinfo/Europe/Moscow
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /tgtime-notifier .
+COPY --from=ghcr.io/tarampampam/curl:8.6.0 /bin/curl /bin/curl
 
 ENV TZ Europe/Moscow
 
