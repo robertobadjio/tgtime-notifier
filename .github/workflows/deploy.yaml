@@ -77,8 +77,8 @@ jobs:
         - name: Log in to the Container registry
           uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
           env:
-            ACTIONS_RUNNER_FORCED_INTERNAL_NODE_VERSION: node16
-            ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
+            #ACTIONS_RUNNER_FORCED_INTERNAL_NODE_VERSION: node16
+            #ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
             #ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
           with:
             registry: ${{ env.REGISTRY }}
