@@ -29,7 +29,7 @@ jobs:
                 touch ./.env
 
             - name: Build containers
-              run: docker run -e HTTP_PORT='8081' -e BOT_TOKEN='${{ secrets.BOT_TOKEN }}' -e WEBHOOK_PATH='${{ secrets.WEBHOOK_PATH }}' -e WEBHOOK_LINK='${{ secrets.WEBHOOK_LINK }}' -e PROMETHEUS_APP_PORT='2112' $(docker build -q .)
+              run: docker run -e HTTP_PORT='8081' -e BOT_TOKEN=${{ secrets.BOT_TOKEN }} -e WEBHOOK_PATH=${{ secrets.WEBHOOK_PATH }} -e WEBHOOK_LINK=${{ secrets.WEBHOOK_LINK }} -e PROMETHEUS_APP_PORT='2112' $(docker build -q .)
 
             - name: Start containers
               run: docker compose -f docker-compose.yml -f docker-compose.yml up -d
