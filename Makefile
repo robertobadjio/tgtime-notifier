@@ -22,9 +22,12 @@ fmt: ## Automatically format source code
 	go fmt ./...
 .PHONY:fmt
 
-lint: fmt ## Check code (lint)
+lint: fmt lint-config-verify  ## Check code (lint)
 	./bin/golangci-lint run ./... --config .golangci.pipeline.yaml
 .PHONY:lint
+
+lint-config-verify: fmt ## Verify config (lint)
+	./bin/golangci-lint config verify --config .golangci.pipeline.yaml
 
 vet: fmt ## Check code (vet)
 	go vet -vettool=$(which shadow) ./...
