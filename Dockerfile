@@ -4,11 +4,11 @@ RUN apk update && apk add tzdata
 
 WORKDIR /app
 
-COPY ../../go.mod go.sum ./
+COPY go.mod go.sum ./
 RUN go mod download
 
-COPY ../../cmd/notifier/notifier.go ./
-COPY ../../internal internal
+COPY cmd/notifier/notifier.go ./
+COPY internal internal
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /tgtime-notifier
 
