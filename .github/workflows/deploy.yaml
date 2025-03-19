@@ -30,6 +30,7 @@ jobs:
     build-and-push-image:
       needs: build
       runs-on: ubuntu-latest
+      container: ubuntu:18.04
       permissions:
         contents: read
         packages: write
