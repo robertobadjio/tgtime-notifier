@@ -7,6 +7,7 @@ require (
 	github.com/go-kit/log v0.2.1
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
 	github.com/gorilla/mux v1.8.1
+	github.com/grafana/pyroscope-go v1.2.1
 	github.com/oklog/oklog v0.3.2
 	github.com/prometheus/client_golang v1.11.1
 	github.com/robertobadjio/tgtime-aggregator v0.0.1
@@ -20,7 +21,8 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/klauspost/compress v1.15.11 // indirect
+	github.com/grafana/pyroscope-go/godeltaprof v0.1.8 // indirect
+	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.16 // indirect

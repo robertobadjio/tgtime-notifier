@@ -43,7 +43,8 @@ type serviceProvider struct {
 
 	previousDayInfo previous_day_info.PreviousDayInfo
 
-	promConfig config.PromConfig
+	promConfig      config.PromConfig
+	pyroscopeConfig config.PyroscopeConfig
 }
 
 func newServiceProvider() *serviceProvider {
@@ -99,6 +100,21 @@ func (sp *serviceProvider) PromConfig() config.PromConfig {
 	return sp.promConfig
 }
 
+// PyroscopeConfig ...
+func (sp *serviceProvider) PyroscopeConfig() config.PyroscopeConfig {
+	if sp.pyroscopeConfig == nil {
+		pyroscopeConfig, err := config.NewPyroscopeConfig()
+		if err != nil {
+			logger.Fatal("di", "pyroscope", "error", err.Error())
+		}
+
+		sp.pyroscopeConfig = pyroscopeConfig
+	}
+
+	return sp.pyroscopeConfig
+}
+
+// KafkaConfig ...
 func (sp *serviceProvider) KafkaConfig() config.KafkaConfig {
 	if sp.kafkaConfig == nil {
 		kc, err := config.NewKafkaConfig()
@@ -112,6 +128,7 @@ func (sp *serviceProvider) KafkaConfig() config.KafkaConfig {
 	return sp.kafkaConfig
 }
 
+// TelegramConfig ...
 func (sp *serviceProvider) TelegramConfig() config.TelegramBotConfig {
 	if sp.tgConfig == nil {
 		tgConfig, err := config.NewTelegramBotConfig()

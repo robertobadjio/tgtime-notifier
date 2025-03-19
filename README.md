@@ -8,6 +8,6 @@ Run services: ```make up```
 Stop services: ```make down```
 
 ### Linter
-``` make install-deps-mac```
+``` make install-deps```
 
 ``` make lint```

@@ -102,6 +102,13 @@ services:
     depends_on:
       - prometheus
 
+  pyroscope:
+    image: grafana/pyroscope:main-28e1d6c
+    ports:
+      - "${PYROSCOPE_PORT}:${PYROSCOPE_PORT}"
+    networks:
+      - tgtime-notifier-network
+
 networks:
   tgtime-notifier-network:
     driver: bridge

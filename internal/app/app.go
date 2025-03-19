@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/grafana/pyroscope-go"
 	"github.com/oklog/oklog/pkg/group"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -47,6 +48,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initCheckInOfficeConsumer,
 		a.initCheckPreviousDayInfo,
 		a.initPrometheus,
+		a.initPyroscope,
 	}
 
 	for _, f := range inits {
@@ -65,6 +67,26 @@ func (a *App) initDeps(ctx context.Context) error {
 
 func (a *App) initServiceProvider(_ context.Context) error {
 	a.serviceProvider = newServiceProvider()
+	return nil
+}
+
+func (a *App) initPyroscope(_ context.Context) error {
+	_, err := pyroscope.Start(pyroscope.Config{
+		ApplicationName: "notify.app",
+		ServerAddress:   "http://" + a.serviceProvider.PyroscopeConfig().Address(),
+		Logger:          pyroscope.StandardLogger,
+		ProfileTypes: []pyroscope.ProfileType{
+			pyroscope.ProfileCPU,
+			pyroscope.ProfileAllocObjects,
+			pyroscope.ProfileAllocSpace,
+			pyroscope.ProfileInuseObjects,
+			pyroscope.ProfileInuseSpace,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
