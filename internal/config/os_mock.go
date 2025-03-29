@@ -17,12 +17,12 @@ type OSMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
-	funcGetEnv          func(key string) (s1 string)
-	funcGetEnvOrigin    string
-	inspectFuncGetEnv   func(key string)
-	afterGetEnvCounter  uint64
-	beforeGetEnvCounter uint64
-	GetEnvMock          mOSMockGetEnv
+	funcGetenv          func(key string) (s1 string)
+	funcGetenvOrigin    string
+	inspectFuncGetenv   func(key string)
+	afterGetenvCounter  uint64
+	beforeGetenvCounter uint64
+	GetenvMock          mOSMockGetenv
 }
 
 // NewOSMock returns a mock for OS
@@ -33,55 +33,55 @@ func NewOSMock(t minimock.Tester) *OSMock {
 		controller.RegisterMocker(m)
 	}
 
-	m.GetEnvMock = mOSMockGetEnv{mock: m}
-	m.GetEnvMock.callArgs = []*OSMockGetEnvParams{}
+	m.GetenvMock = mOSMockGetenv{mock: m}
+	m.GetenvMock.callArgs = []*OSMockGetenvParams{}
 
 	t.Cleanup(m.MinimockFinish)
 
 	return m
 }
 
-type mOSMockGetEnv struct {
+type mOSMockGetenv struct {
 	optional           bool
 	mock               *OSMock
-	defaultExpectation *OSMockGetEnvExpectation
-	expectations       []*OSMockGetEnvExpectation
+	defaultExpectation *OSMockGetenvExpectation
+	expectations       []*OSMockGetenvExpectation
 
-	callArgs []*OSMockGetEnvParams
+	callArgs []*OSMockGetenvParams
 	mutex    sync.RWMutex
 
 	expectedInvocations       uint64
 	expectedInvocationsOrigin string
 }
 
-// OSMockGetEnvExpectation specifies expectation struct of the OS.GetEnv
-type OSMockGetEnvExpectation struct {
+// OSMockGetenvExpectation specifies expectation struct of the OS.Getenv
+type OSMockGetenvExpectation struct {
 	mock               *OSMock
-	params             *OSMockGetEnvParams
-	paramPtrs          *OSMockGetEnvParamPtrs
-	expectationOrigins OSMockGetEnvExpectationOrigins
-	results            *OSMockGetEnvResults
+	params             *OSMockGetenvParams
+	paramPtrs          *OSMockGetenvParamPtrs
+	expectationOrigins OSMockGetenvExpectationOrigins
+	results            *OSMockGetenvResults
 	returnOrigin       string
 	Counter            uint64
 }
 
-// OSMockGetEnvParams contains parameters of the OS.GetEnv
-type OSMockGetEnvParams struct {
+// OSMockGetenvParams contains parameters of the OS.Getenv
+type OSMockGetenvParams struct {
 	key string
 }
 
-// OSMockGetEnvParamPtrs contains pointers to parameters of the OS.GetEnv
-type OSMockGetEnvParamPtrs struct {
+// OSMockGetenvParamPtrs contains pointers to parameters of the OS.Getenv
+type OSMockGetenvParamPtrs struct {
 	key *string
 }
 
-// OSMockGetEnvResults contains results of the OS.GetEnv
-type OSMockGetEnvResults struct {
+// OSMockGetenvResults contains results of the OS.Getenv
+type OSMockGetenvResults struct {
 	s1 string
 }
 
-// OSMockGetEnvOrigins contains origins of expectations of the OS.GetEnv
-type OSMockGetEnvExpectationOrigins struct {
+// OSMockGetenvOrigins contains origins of expectations of the OS.Getenv
+type OSMockGetenvExpectationOrigins struct {
 	origin    string
 	originKey string
 }
@@ -91,264 +91,264 @@ type OSMockGetEnvExpectationOrigins struct {
 // Optional() makes method check to work in '0 or more' mode.
 // It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
 // catch the problems when the expected method call is totally skipped during test run.
-func (mmGetEnv *mOSMockGetEnv) Optional() *mOSMockGetEnv {
-	mmGetEnv.optional = true
-	return mmGetEnv
+func (mmGetenv *mOSMockGetenv) Optional() *mOSMockGetenv {
+	mmGetenv.optional = true
+	return mmGetenv
 }
 
-// Expect sets up expected params for OS.GetEnv
-func (mmGetEnv *mOSMockGetEnv) Expect(key string) *mOSMockGetEnv {
-	if mmGetEnv.mock.funcGetEnv != nil {
-		mmGetEnv.mock.t.Fatalf("OSMock.GetEnv mock is already set by Set")
+// Expect sets up expected params for OS.Getenv
+func (mmGetenv *mOSMockGetenv) Expect(key string) *mOSMockGetenv {
+	if mmGetenv.mock.funcGetenv != nil {
+		mmGetenv.mock.t.Fatalf("OSMock.Getenv mock is already set by Set")
 	}
 
-	if mmGetEnv.defaultExpectation == nil {
-		mmGetEnv.defaultExpectation = &OSMockGetEnvExpectation{}
+	if mmGetenv.defaultExpectation == nil {
+		mmGetenv.defaultExpectation = &OSMockGetenvExpectation{}
 	}
 
-	if mmGetEnv.defaultExpectation.paramPtrs != nil {
-		mmGetEnv.mock.t.Fatalf("OSMock.GetEnv mock is already set by ExpectParams functions")
+	if mmGetenv.defaultExpectation.paramPtrs != nil {
+		mmGetenv.mock.t.Fatalf("OSMock.Getenv mock is already set by ExpectParams functions")
 	}
 
-	mmGetEnv.defaultExpectation.params = &OSMockGetEnvParams{key}
-	mmGetEnv.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
-	for _, e := range mmGetEnv.expectations {
-		if minimock.Equal(e.params, mmGetEnv.defaultExpectation.params) {
-			mmGetEnv.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGetEnv.defaultExpectation.params)
+	mmGetenv.defaultExpectation.params = &OSMockGetenvParams{key}
+	mmGetenv.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmGetenv.expectations {
+		if minimock.Equal(e.params, mmGetenv.defaultExpectation.params) {
+			mmGetenv.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGetenv.defaultExpectation.params)
 		}
 	}
 
-	return mmGetEnv
+	return mmGetenv
 }
 
-// ExpectKeyParam1 sets up expected param key for OS.GetEnv
-func (mmGetEnv *mOSMockGetEnv) ExpectKeyParam1(key string) *mOSMockGetEnv {
-	if mmGetEnv.mock.funcGetEnv != nil {
-		mmGetEnv.mock.t.Fatalf("OSMock.GetEnv mock is already set by Set")
+// ExpectKeyParam1 sets up expected param key for OS.Getenv
+func (mmGetenv *mOSMockGetenv) ExpectKeyParam1(key string) *mOSMockGetenv {
+	if mmGetenv.mock.funcGetenv != nil {
+		mmGetenv.mock.t.Fatalf("OSMock.Getenv mock is already set by Set")
 	}
 
-	if mmGetEnv.defaultExpectation == nil {
-		mmGetEnv.defaultExpectation = &OSMockGetEnvExpectation{}
+	if mmGetenv.defaultExpectation == nil {
+		mmGetenv.defaultExpectation = &OSMockGetenvExpectation{}
 	}
 
-	if mmGetEnv.defaultExpectation.params != nil {
-		mmGetEnv.mock.t.Fatalf("OSMock.GetEnv mock is already set by Expect")
+	if mmGetenv.defaultExpectation.params != nil {
+		mmGetenv.mock.t.Fatalf("OSMock.Getenv mock is already set by Expect")
 	}
 
-	if mmGetEnv.defaultExpectation.paramPtrs == nil {
-		mmGetEnv.defaultExpectation.paramPtrs = &OSMockGetEnvParamPtrs{}
+	if mmGetenv.defaultExpectation.paramPtrs == nil {
+		mmGetenv.defaultExpectation.paramPtrs = &OSMockGetenvParamPtrs{}
 	}
-	mmGetEnv.defaultExpectation.paramPtrs.key = &key
-	mmGetEnv.defaultExpectation.expectationOrigins.originKey = minimock.CallerInfo(1)
+	mmGetenv.defaultExpectation.paramPtrs.key = &key
+	mmGetenv.defaultExpectation.expectationOrigins.originKey = minimock.CallerInfo(1)
 
-	return mmGetEnv
+	return mmGetenv
 }
 
-// Inspect accepts an inspector function that has same arguments as the OS.GetEnv
-func (mmGetEnv *mOSMockGetEnv) Inspect(f func(key string)) *mOSMockGetEnv {
-	if mmGetEnv.mock.inspectFuncGetEnv != nil {
-		mmGetEnv.mock.t.Fatalf("Inspect function is already set for OSMock.GetEnv")
+// Inspect accepts an inspector function that has same arguments as the OS.Getenv
+func (mmGetenv *mOSMockGetenv) Inspect(f func(key string)) *mOSMockGetenv {
+	if mmGetenv.mock.inspectFuncGetenv != nil {
+		mmGetenv.mock.t.Fatalf("Inspect function is already set for OSMock.Getenv")
 	}
 
-	mmGetEnv.mock.inspectFuncGetEnv = f
+	mmGetenv.mock.inspectFuncGetenv = f
 
-	return mmGetEnv
+	return mmGetenv
 }
 
-// Return sets up results that will be returned by OS.GetEnv
-func (mmGetEnv *mOSMockGetEnv) Return(s1 string) *OSMock {
-	if mmGetEnv.mock.funcGetEnv != nil {
-		mmGetEnv.mock.t.Fatalf("OSMock.GetEnv mock is already set by Set")
+// Return sets up results that will be returned by OS.Getenv
+func (mmGetenv *mOSMockGetenv) Return(s1 string) *OSMock {
+	if mmGetenv.mock.funcGetenv != nil {
+		mmGetenv.mock.t.Fatalf("OSMock.Getenv mock is already set by Set")
 	}
 
-	if mmGetEnv.defaultExpectation == nil {
-		mmGetEnv.defaultExpectation = &OSMockGetEnvExpectation{mock: mmGetEnv.mock}
+	if mmGetenv.defaultExpectation == nil {
+		mmGetenv.defaultExpectation = &OSMockGetenvExpectation{mock: mmGetenv.mock}
 	}
-	mmGetEnv.defaultExpectation.results = &OSMockGetEnvResults{s1}
-	mmGetEnv.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
-	return mmGetEnv.mock
+	mmGetenv.defaultExpectation.results = &OSMockGetenvResults{s1}
+	mmGetenv.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmGetenv.mock
 }
 
-// Set uses given function f to mock the OS.GetEnv method
-func (mmGetEnv *mOSMockGetEnv) Set(f func(key string) (s1 string)) *OSMock {
-	if mmGetEnv.defaultExpectation != nil {
-		mmGetEnv.mock.t.Fatalf("Default expectation is already set for the OS.GetEnv method")
+// Set uses given function f to mock the OS.Getenv method
+func (mmGetenv *mOSMockGetenv) Set(f func(key string) (s1 string)) *OSMock {
+	if mmGetenv.defaultExpectation != nil {
+		mmGetenv.mock.t.Fatalf("Default expectation is already set for the OS.Getenv method")
 	}
 
-	if len(mmGetEnv.expectations) > 0 {
-		mmGetEnv.mock.t.Fatalf("Some expectations are already set for the OS.GetEnv method")
+	if len(mmGetenv.expectations) > 0 {
+		mmGetenv.mock.t.Fatalf("Some expectations are already set for the OS.Getenv method")
 	}
 
-	mmGetEnv.mock.funcGetEnv = f
-	mmGetEnv.mock.funcGetEnvOrigin = minimock.CallerInfo(1)
-	return mmGetEnv.mock
+	mmGetenv.mock.funcGetenv = f
+	mmGetenv.mock.funcGetenvOrigin = minimock.CallerInfo(1)
+	return mmGetenv.mock
 }
 
-// When sets expectation for the OS.GetEnv which will trigger the result defined by the following
+// When sets expectation for the OS.Getenv which will trigger the result defined by the following
 // Then helper
-func (mmGetEnv *mOSMockGetEnv) When(key string) *OSMockGetEnvExpectation {
-	if mmGetEnv.mock.funcGetEnv != nil {
-		mmGetEnv.mock.t.Fatalf("OSMock.GetEnv mock is already set by Set")
+func (mmGetenv *mOSMockGetenv) When(key string) *OSMockGetenvExpectation {
+	if mmGetenv.mock.funcGetenv != nil {
+		mmGetenv.mock.t.Fatalf("OSMock.Getenv mock is already set by Set")
 	}
 
-	expectation := &OSMockGetEnvExpectation{
-		mock:               mmGetEnv.mock,
-		params:             &OSMockGetEnvParams{key},
-		expectationOrigins: OSMockGetEnvExpectationOrigins{origin: minimock.CallerInfo(1)},
+	expectation := &OSMockGetenvExpectation{
+		mock:               mmGetenv.mock,
+		params:             &OSMockGetenvParams{key},
+		expectationOrigins: OSMockGetenvExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
-	mmGetEnv.expectations = append(mmGetEnv.expectations, expectation)
+	mmGetenv.expectations = append(mmGetenv.expectations, expectation)
 	return expectation
 }
 
-// Then sets up OS.GetEnv return parameters for the expectation previously defined by the When method
-func (e *OSMockGetEnvExpectation) Then(s1 string) *OSMock {
-	e.results = &OSMockGetEnvResults{s1}
+// Then sets up OS.Getenv return parameters for the expectation previously defined by the When method
+func (e *OSMockGetenvExpectation) Then(s1 string) *OSMock {
+	e.results = &OSMockGetenvResults{s1}
 	return e.mock
 }
 
-// Times sets number of times OS.GetEnv should be invoked
-func (mmGetEnv *mOSMockGetEnv) Times(n uint64) *mOSMockGetEnv {
+// Times sets number of times OS.Getenv should be invoked
+func (mmGetenv *mOSMockGetenv) Times(n uint64) *mOSMockGetenv {
 	if n == 0 {
-		mmGetEnv.mock.t.Fatalf("Times of OSMock.GetEnv mock can not be zero")
+		mmGetenv.mock.t.Fatalf("Times of OSMock.Getenv mock can not be zero")
 	}
-	mm_atomic.StoreUint64(&mmGetEnv.expectedInvocations, n)
-	mmGetEnv.expectedInvocationsOrigin = minimock.CallerInfo(1)
-	return mmGetEnv
+	mm_atomic.StoreUint64(&mmGetenv.expectedInvocations, n)
+	mmGetenv.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmGetenv
 }
 
-func (mmGetEnv *mOSMockGetEnv) invocationsDone() bool {
-	if len(mmGetEnv.expectations) == 0 && mmGetEnv.defaultExpectation == nil && mmGetEnv.mock.funcGetEnv == nil {
+func (mmGetenv *mOSMockGetenv) invocationsDone() bool {
+	if len(mmGetenv.expectations) == 0 && mmGetenv.defaultExpectation == nil && mmGetenv.mock.funcGetenv == nil {
 		return true
 	}
 
-	totalInvocations := mm_atomic.LoadUint64(&mmGetEnv.mock.afterGetEnvCounter)
-	expectedInvocations := mm_atomic.LoadUint64(&mmGetEnv.expectedInvocations)
+	totalInvocations := mm_atomic.LoadUint64(&mmGetenv.mock.afterGetenvCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmGetenv.expectedInvocations)
 
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// GetEnv implements OS
-func (mmGetEnv *OSMock) GetEnv(key string) (s1 string) {
-	mm_atomic.AddUint64(&mmGetEnv.beforeGetEnvCounter, 1)
-	defer mm_atomic.AddUint64(&mmGetEnv.afterGetEnvCounter, 1)
+// Getenv implements OS
+func (mmGetenv *OSMock) Getenv(key string) (s1 string) {
+	mm_atomic.AddUint64(&mmGetenv.beforeGetenvCounter, 1)
+	defer mm_atomic.AddUint64(&mmGetenv.afterGetenvCounter, 1)
 
-	mmGetEnv.t.Helper()
+	mmGetenv.t.Helper()
 
-	if mmGetEnv.inspectFuncGetEnv != nil {
-		mmGetEnv.inspectFuncGetEnv(key)
+	if mmGetenv.inspectFuncGetenv != nil {
+		mmGetenv.inspectFuncGetenv(key)
 	}
 
-	mm_params := OSMockGetEnvParams{key}
+	mm_params := OSMockGetenvParams{key}
 
 	// Record call args
-	mmGetEnv.GetEnvMock.mutex.Lock()
-	mmGetEnv.GetEnvMock.callArgs = append(mmGetEnv.GetEnvMock.callArgs, &mm_params)
-	mmGetEnv.GetEnvMock.mutex.Unlock()
+	mmGetenv.GetenvMock.mutex.Lock()
+	mmGetenv.GetenvMock.callArgs = append(mmGetenv.GetenvMock.callArgs, &mm_params)
+	mmGetenv.GetenvMock.mutex.Unlock()
 
-	for _, e := range mmGetEnv.GetEnvMock.expectations {
+	for _, e := range mmGetenv.GetenvMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
 			return e.results.s1
 		}
 	}
 
-	if mmGetEnv.GetEnvMock.defaultExpectation != nil {
-		mm_atomic.AddUint64(&mmGetEnv.GetEnvMock.defaultExpectation.Counter, 1)
-		mm_want := mmGetEnv.GetEnvMock.defaultExpectation.params
-		mm_want_ptrs := mmGetEnv.GetEnvMock.defaultExpectation.paramPtrs
+	if mmGetenv.GetenvMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmGetenv.GetenvMock.defaultExpectation.Counter, 1)
+		mm_want := mmGetenv.GetenvMock.defaultExpectation.params
+		mm_want_ptrs := mmGetenv.GetenvMock.defaultExpectation.paramPtrs
 
-		mm_got := OSMockGetEnvParams{key}
+		mm_got := OSMockGetenvParams{key}
 
 		if mm_want_ptrs != nil {
 
 			if mm_want_ptrs.key != nil && !minimock.Equal(*mm_want_ptrs.key, mm_got.key) {
-				mmGetEnv.t.Errorf("OSMock.GetEnv got unexpected parameter key, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmGetEnv.GetEnvMock.defaultExpectation.expectationOrigins.originKey, *mm_want_ptrs.key, mm_got.key, minimock.Diff(*mm_want_ptrs.key, mm_got.key))
+				mmGetenv.t.Errorf("OSMock.Getenv got unexpected parameter key, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetenv.GetenvMock.defaultExpectation.expectationOrigins.originKey, *mm_want_ptrs.key, mm_got.key, minimock.Diff(*mm_want_ptrs.key, mm_got.key))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
-			mmGetEnv.t.Errorf("OSMock.GetEnv got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-				mmGetEnv.GetEnvMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+			mmGetenv.t.Errorf("OSMock.Getenv got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmGetenv.GetenvMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
 
-		mm_results := mmGetEnv.GetEnvMock.defaultExpectation.results
+		mm_results := mmGetenv.GetenvMock.defaultExpectation.results
 		if mm_results == nil {
-			mmGetEnv.t.Fatal("No results are set for the OSMock.GetEnv")
+			mmGetenv.t.Fatal("No results are set for the OSMock.Getenv")
 		}
 		return (*mm_results).s1
 	}
-	if mmGetEnv.funcGetEnv != nil {
-		return mmGetEnv.funcGetEnv(key)
+	if mmGetenv.funcGetenv != nil {
+		return mmGetenv.funcGetenv(key)
 	}
-	mmGetEnv.t.Fatalf("Unexpected call to OSMock.GetEnv. %v", key)
+	mmGetenv.t.Fatalf("Unexpected call to OSMock.Getenv. %v", key)
 	return
 }
 
-// GetEnvAfterCounter returns a count of finished OSMock.GetEnv invocations
-func (mmGetEnv *OSMock) GetEnvAfterCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmGetEnv.afterGetEnvCounter)
+// GetenvAfterCounter returns a count of finished OSMock.Getenv invocations
+func (mmGetenv *OSMock) GetenvAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetenv.afterGetenvCounter)
 }
 
-// GetEnvBeforeCounter returns a count of OSMock.GetEnv invocations
-func (mmGetEnv *OSMock) GetEnvBeforeCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmGetEnv.beforeGetEnvCounter)
+// GetenvBeforeCounter returns a count of OSMock.Getenv invocations
+func (mmGetenv *OSMock) GetenvBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetenv.beforeGetenvCounter)
 }
 
-// Calls returns a list of arguments used in each call to OSMock.GetEnv.
+// Calls returns a list of arguments used in each call to OSMock.Getenv.
 // The list is in the same order as the calls were made (i.e. recent calls have a higher index)
-func (mmGetEnv *mOSMockGetEnv) Calls() []*OSMockGetEnvParams {
-	mmGetEnv.mutex.RLock()
+func (mmGetenv *mOSMockGetenv) Calls() []*OSMockGetenvParams {
+	mmGetenv.mutex.RLock()
 
-	argCopy := make([]*OSMockGetEnvParams, len(mmGetEnv.callArgs))
-	copy(argCopy, mmGetEnv.callArgs)
+	argCopy := make([]*OSMockGetenvParams, len(mmGetenv.callArgs))
+	copy(argCopy, mmGetenv.callArgs)
 
-	mmGetEnv.mutex.RUnlock()
+	mmGetenv.mutex.RUnlock()
 
 	return argCopy
 }
 
-// MinimockGetEnvDone returns true if the count of the GetEnv invocations corresponds
+// MinimockGetenvDone returns true if the count of the Getenv invocations corresponds
 // the number of defined expectations
-func (m *OSMock) MinimockGetEnvDone() bool {
-	if m.GetEnvMock.optional {
+func (m *OSMock) MinimockGetenvDone() bool {
+	if m.GetenvMock.optional {
 		// Optional methods provide '0 or more' call count restriction.
 		return true
 	}
 
-	for _, e := range m.GetEnvMock.expectations {
+	for _, e := range m.GetenvMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
 			return false
 		}
 	}
 
-	return m.GetEnvMock.invocationsDone()
+	return m.GetenvMock.invocationsDone()
 }
 
-// MinimockGetEnvInspect logs each unmet expectation
-func (m *OSMock) MinimockGetEnvInspect() {
-	for _, e := range m.GetEnvMock.expectations {
+// MinimockGetenvInspect logs each unmet expectation
+func (m *OSMock) MinimockGetenvInspect() {
+	for _, e := range m.GetenvMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
-			m.t.Errorf("Expected call to OSMock.GetEnv at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+			m.t.Errorf("Expected call to OSMock.Getenv at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
 		}
 	}
 
-	afterGetEnvCounter := mm_atomic.LoadUint64(&m.afterGetEnvCounter)
+	afterGetenvCounter := mm_atomic.LoadUint64(&m.afterGetenvCounter)
 	// if default expectation was set then invocations count should be greater than zero
-	if m.GetEnvMock.defaultExpectation != nil && afterGetEnvCounter < 1 {
-		if m.GetEnvMock.defaultExpectation.params == nil {
-			m.t.Errorf("Expected call to OSMock.GetEnv at\n%s", m.GetEnvMock.defaultExpectation.returnOrigin)
+	if m.GetenvMock.defaultExpectation != nil && afterGetenvCounter < 1 {
+		if m.GetenvMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to OSMock.Getenv at\n%s", m.GetenvMock.defaultExpectation.returnOrigin)
 		} else {
-			m.t.Errorf("Expected call to OSMock.GetEnv at\n%s with params: %#v", m.GetEnvMock.defaultExpectation.expectationOrigins.origin, *m.GetEnvMock.defaultExpectation.params)
+			m.t.Errorf("Expected call to OSMock.Getenv at\n%s with params: %#v", m.GetenvMock.defaultExpectation.expectationOrigins.origin, *m.GetenvMock.defaultExpectation.params)
 		}
 	}
 	// if func was set then invocations count should be greater than zero
-	if m.funcGetEnv != nil && afterGetEnvCounter < 1 {
-		m.t.Errorf("Expected call to OSMock.GetEnv at\n%s", m.funcGetEnvOrigin)
+	if m.funcGetenv != nil && afterGetenvCounter < 1 {
+		m.t.Errorf("Expected call to OSMock.Getenv at\n%s", m.funcGetenvOrigin)
 	}
 
-	if !m.GetEnvMock.invocationsDone() && afterGetEnvCounter > 0 {
-		m.t.Errorf("Expected %d calls to OSMock.GetEnv at\n%s but found %d calls",
-			mm_atomic.LoadUint64(&m.GetEnvMock.expectedInvocations), m.GetEnvMock.expectedInvocationsOrigin, afterGetEnvCounter)
+	if !m.GetenvMock.invocationsDone() && afterGetenvCounter > 0 {
+		m.t.Errorf("Expected %d calls to OSMock.Getenv at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.GetenvMock.expectedInvocations), m.GetenvMock.expectedInvocationsOrigin, afterGetenvCounter)
 	}
 }
 
@@ -356,7 +356,7 @@ func (m *OSMock) MinimockGetEnvInspect() {
 func (m *OSMock) MinimockFinish() {
 	m.finishOnce.Do(func() {
 		if !m.minimockDone() {
-			m.MinimockGetEnvInspect()
+			m.MinimockGetenvInspect()
 		}
 	})
 }
@@ -380,5 +380,5 @@ func (m *OSMock) MinimockWait(timeout mm_time.Duration) {
 func (m *OSMock) minimockDone() bool {
 	done := true
 	return done &&
-		m.MinimockGetEnvDone()
+		m.MinimockGetenvDone()
 }

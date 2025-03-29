@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"net"
-	"os"
 )
 
 const pyroscopeHostEnvName = "PYROSCOPE_HOST"
@@ -20,7 +19,11 @@ type pyroscopeConfig struct {
 }
 
 // NewPyroscopeConfig ...
-func NewPyroscopeConfig() (PyroscopeConfig, error) {
+func NewPyroscopeConfig(os OS) (PyroscopeConfig, error) {
+	if os == nil {
+		return nil, fmt.Errorf("os must not be nil")
+	}
+
 	host := os.Getenv(pyroscopeHostEnvName)
 	if len(host) == 0 {
 		return nil, fmt.Errorf("environment variable %s not set", pyroscopeHostEnvName)

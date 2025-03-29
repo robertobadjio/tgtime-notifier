@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewHTTPConfig(t *testing.T) {
+func TestPyroscopeConfig_New(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
@@ -27,25 +27,37 @@ func TestNewHTTPConfig(t *testing.T) {
 			expectedNilObj: true,
 			expectedErr:    errors.New("os must not be nil"),
 		},
-		"create config with port": {
+		"create config with host and port": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
-				osMock.GetenvMock.Expect(httpPortEnvVar).Times(1).Return("8080")
+				osMock.GetenvMock.When(pyroscopeHostEnvName).Then("127.0.0.1")
+				osMock.GetenvMock.When(pyroscopePortEnvName).Then("4040")
 
 				return osMock
 			},
 			expectedNilObj: false,
 			expectedErr:    nil,
 		},
-		"create config with empty port": {
+		"create config with empty host": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
-				osMock.GetenvMock.Expect(httpPortEnvVar).Times(1).Return("")
+				osMock.GetenvMock.Expect(pyroscopeHostEnvName).Times(1).Return("")
 
 				return osMock
 			},
 			expectedNilObj: true,
-			expectedErr:    fmt.Errorf("environment variable %s must be set", httpPortEnvVar),
+			expectedErr:    fmt.Errorf("environment variable %s not set", pyroscopeHostEnvName),
+		},
+		"create config with empty port": {
+			os: func() OS {
+				osMock := NewOSMock(mc)
+				osMock.GetenvMock.When(pyroscopeHostEnvName).Then("127.0.0.1")
+				osMock.GetenvMock.When(pyroscopePortEnvName).Then("")
+
+				return osMock
+			},
+			expectedNilObj: true,
+			expectedErr:    fmt.Errorf("environment variable %s not set", pyroscopePortEnvName),
 		},
 	}
 
@@ -53,7 +65,7 @@ func TestNewHTTPConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cfg, err := NewHTTPConfig(test.os())
+			cfg, err := NewPyroscopeConfig(test.os())
 			assert.Equal(t, test.expectedErr, err)
 
 			if test.expectedNilObj {
@@ -65,7 +77,7 @@ func TestNewHTTPConfig(t *testing.T) {
 	}
 }
 
-func TestAddress(t *testing.T) {
+func TestPyroscopeConfig_Address(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
@@ -78,11 +90,12 @@ func TestAddress(t *testing.T) {
 		"get address": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
-				osMock.GetenvMock.Expect(httpPortEnvVar).Times(1).Return("8080")
+				osMock.GetenvMock.When(pyroscopeHostEnvName).Then("127.0.0.1")
+				osMock.GetenvMock.When(pyroscopePortEnvName).Then("4040")
 
 				return osMock
 			},
-			expectedString: ":8080",
+			expectedString: "127.0.0.1:4040",
 		},
 	}
 
@@ -90,7 +103,7 @@ func TestAddress(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cfg, err := NewHTTPConfig(test.os())
+			cfg, err := NewPyroscopeConfig(test.os())
 			assert.Nil(t, err)
 			assert.NotNil(t, cfg)
 			assert.Equal(t, test.expectedString, cfg.Address())

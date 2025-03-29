@@ -23,7 +23,7 @@ func NewHTTPConfig(os OS) (HTTPConfig, error) {
 		return nil, fmt.Errorf("os must not be nil")
 	}
 
-	port := os.GetEnv(httpPortEnvVar)
+	port := os.Getenv(httpPortEnvVar)
 	if len(port) == 0 {
 		return nil, fmt.Errorf("environment variable %s must be set", httpPortEnvVar)
 	}

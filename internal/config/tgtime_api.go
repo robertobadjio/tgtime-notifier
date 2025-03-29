@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"net"
-	"os"
 )
 
 const (
@@ -22,7 +21,11 @@ type tgTimeAPIConfig struct {
 }
 
 // NewTgTimeAPIConfig ???
-func NewTgTimeAPIConfig() (TgTimeAPIConfig, error) {
+func NewTgTimeAPIConfig(os OS) (TgTimeAPIConfig, error) {
+	if os == nil {
+		return nil, fmt.Errorf("os must not be nil")
+	}
+
 	host := os.Getenv(tgTimeAPIHost)
 
 	port := os.Getenv(tgTimeAPIPort)

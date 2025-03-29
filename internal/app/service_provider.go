@@ -104,7 +104,7 @@ func (sp *serviceProvider) HTTPConfig() config.HTTPConfig {
 // PromConfig ...
 func (sp *serviceProvider) PromConfig() config.PromConfig {
 	if sp.promConfig == nil {
-		promConfig, err := config.NewPromConfig()
+		promConfig, err := config.NewPromConfig(sp.OS())
 		if err != nil {
 			logger.Fatal("di", "prometheus", "error", err.Error())
 		}
@@ -118,7 +118,7 @@ func (sp *serviceProvider) PromConfig() config.PromConfig {
 // PyroscopeConfig ...
 func (sp *serviceProvider) PyroscopeConfig() config.PyroscopeConfig {
 	if sp.pyroscopeConfig == nil {
-		pyroscopeConfig, err := config.NewPyroscopeConfig()
+		pyroscopeConfig, err := config.NewPyroscopeConfig(sp.OS())
 		if err != nil {
 			logger.Fatal("di", "pyroscope", "error", err.Error())
 		}
@@ -132,7 +132,7 @@ func (sp *serviceProvider) PyroscopeConfig() config.PyroscopeConfig {
 // KafkaConfig ...
 func (sp *serviceProvider) KafkaConfig() config.KafkaConfig {
 	if sp.kafkaConfig == nil {
-		kc, err := config.NewKafkaConfig()
+		kc, err := config.NewKafkaConfig(sp.OS())
 		if err != nil {
 			logger.Fatal("di", "http", "error", err.Error())
 		}
@@ -146,7 +146,7 @@ func (sp *serviceProvider) KafkaConfig() config.KafkaConfig {
 // TelegramConfig ...
 func (sp *serviceProvider) TelegramConfig() config.TelegramBotConfig {
 	if sp.tgConfig == nil {
-		tgConfig, err := config.NewTelegramBotConfig()
+		tgConfig, err := config.NewTelegramBotConfig(sp.OS())
 		if err != nil {
 			logger.Fatal("di", "tgConfig", "error", err.Error())
 		}
@@ -174,12 +174,12 @@ func (sp *serviceProvider) TGNotifier() notifierI.Notifier {
 // TgBot ...
 func (sp *serviceProvider) TgBot() *TGBotAPI.BotAPI {
 	if sp.tgBot == nil {
-		bot, err := TGBotAPI.NewBotAPI(sp.TelegramConfig().GetToken())
+		bot, err := TGBotAPI.NewBotAPI(sp.TelegramConfig().Token())
 		if err != nil {
 			logger.Fatal("di", "tgBot", "error", err.Error())
 		}
 
-		_, err = bot.SetWebhook(TGBotAPI.NewWebhook(sp.TelegramConfig().GetWebhookLink()))
+		_, err = bot.SetWebhook(TGBotAPI.NewWebhook(sp.TelegramConfig().WebhookLink()))
 		if err != nil {
 			logger.Fatal("di", "tgBot", "type", "set telegram webhook", "error", err.Error())
 		}
@@ -211,7 +211,7 @@ func (sp *serviceProvider) Kafka() *kafka.Kafka {
 // TGTimeAPIConfig ...
 func (sp *serviceProvider) TGTimeAPIConfig() config.TgTimeAPIConfig {
 	if sp.tgTimeAPIConfig == nil {
-		c, err := config.NewTgTimeAPIConfig()
+		c, err := config.NewTgTimeAPIConfig(sp.OS())
 		if err != nil {
 			logger.Fatal("di", "tgTimeAPIConfig", "error", err.Error())
 		}
@@ -234,7 +234,7 @@ func (sp *serviceProvider) TGTimeAPIClient() api_pb.Client {
 // TGTimeAggregatorConfig ...
 func (sp *serviceProvider) TGTimeAggregatorConfig() config.TgTimeAPIConfig {
 	if sp.tgTimeAggregatorConfig == nil {
-		c, err := config.NewTgTimeAggregatorConfig()
+		c, err := config.NewTgTimeAggregatorConfig(sp.OS())
 		if err != nil {
 			logger.Fatal("di", "tgTimeAggregatorConfig", "error", err.Error())
 		}

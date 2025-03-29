@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"net"
-	"os"
 )
 
 const (
@@ -22,7 +21,11 @@ type tgTimeAggregatorConfig struct {
 }
 
 // NewTgTimeAggregatorConfig ???
-func NewTgTimeAggregatorConfig() (TgTimeAggregatorConfig, error) {
+func NewTgTimeAggregatorConfig(os OS) (TgTimeAggregatorConfig, error) {
+	if os == nil {
+		return nil, fmt.Errorf("os must not be nil")
+	}
+
 	host := os.Getenv(tgTimeAggregatorHost)
 
 	port := os.Getenv(tgTimeAggregatorPort)

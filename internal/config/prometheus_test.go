@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewHTTPConfig(t *testing.T) {
+func TestNewPromConfig(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
@@ -30,7 +30,7 @@ func TestNewHTTPConfig(t *testing.T) {
 		"create config with port": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
-				osMock.GetenvMock.Expect(httpPortEnvVar).Times(1).Return("8080")
+				osMock.GetenvMock.Expect(promAppPortEnvName).Times(1).Return("2112")
 
 				return osMock
 			},
@@ -40,12 +40,12 @@ func TestNewHTTPConfig(t *testing.T) {
 		"create config with empty port": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
-				osMock.GetenvMock.Expect(httpPortEnvVar).Times(1).Return("")
+				osMock.GetenvMock.Expect(promAppPortEnvName).Times(1).Return("")
 
 				return osMock
 			},
 			expectedNilObj: true,
-			expectedErr:    fmt.Errorf("environment variable %s must be set", httpPortEnvVar),
+			expectedErr:    fmt.Errorf("environment variable %s not set", promAppPortEnvName),
 		},
 	}
 
@@ -53,7 +53,7 @@ func TestNewHTTPConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cfg, err := NewHTTPConfig(test.os())
+			cfg, err := NewPromConfig(test.os())
 			assert.Equal(t, test.expectedErr, err)
 
 			if test.expectedNilObj {
@@ -65,7 +65,7 @@ func TestNewHTTPConfig(t *testing.T) {
 	}
 }
 
-func TestAddress(t *testing.T) {
+func TestPromConfig_Address(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
@@ -73,16 +73,16 @@ func TestAddress(t *testing.T) {
 	tests := map[string]struct {
 		os func() OS
 
-		expectedString string
+		expectedAddress string
 	}{
 		"get address": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
-				osMock.GetenvMock.Expect(httpPortEnvVar).Times(1).Return("8080")
+				osMock.GetenvMock.Expect(promAppPortEnvName).Times(1).Return("2112")
 
 				return osMock
 			},
-			expectedString: ":8080",
+			expectedAddress: ":2112",
 		},
 	}
 
@@ -90,10 +90,43 @@ func TestAddress(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cfg, err := NewHTTPConfig(test.os())
+			cfg, err := NewPromConfig(test.os())
 			assert.Nil(t, err)
 			assert.NotNil(t, cfg)
-			assert.Equal(t, test.expectedString, cfg.Address())
+			assert.Equal(t, test.expectedAddress, cfg.Address())
+		})
+	}
+}
+
+func TestPromConfig_Path(t *testing.T) {
+	t.Parallel()
+
+	mc := minimock.NewController(t)
+
+	tests := map[string]struct {
+		os func() OS
+
+		expectedPath string
+	}{
+		"get address": {
+			os: func() OS {
+				osMock := NewOSMock(mc)
+				osMock.GetenvMock.Expect(promAppPortEnvName).Times(1).Return("2112")
+
+				return osMock
+			},
+			expectedPath: "/metrics",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg, err := NewPromConfig(test.os())
+			assert.Nil(t, err)
+			assert.NotNil(t, cfg)
+			assert.Equal(t, test.expectedPath, cfg.Path())
 		})
 	}
 }

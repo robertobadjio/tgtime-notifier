@@ -220,10 +220,10 @@ func (a *App) initTGUpdateHandle(ctx context.Context) error {
 		"notifier", "telegram",
 		"name", a.serviceProvider.TgBot().Self.UserName,
 		"msg", "setting webhook",
-		"url", a.serviceProvider.tgConfig.GetWebhookLink(),
+		"url", a.serviceProvider.tgConfig.WebhookLink(),
 	)
 
-	updates := a.serviceProvider.TgBot().ListenForWebhook("/" + a.serviceProvider.TelegramConfig().GetWebhookPath())
+	updates := a.serviceProvider.TgBot().ListenForWebhook("/" + a.serviceProvider.TelegramConfig().WebhookPath())
 	a.gGroup.Add(
 		func() error {
 			for update := range updates {

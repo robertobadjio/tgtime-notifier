@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"net"
-	"os"
 )
 
 const promAppPortEnvName = "PROMETHEUS_APP_PORT"
@@ -21,7 +20,11 @@ type promConfig struct {
 }
 
 // NewPromConfig ...
-func NewPromConfig() (PromConfig, error) {
+func NewPromConfig(os OS) (PromConfig, error) {
+	if os == nil {
+		return nil, fmt.Errorf("os must not be nil")
+	}
+
 	port := os.Getenv(promAppPortEnvName)
 	if len(port) == 0 {
 		return nil, fmt.Errorf("environment variable %s not set", promAppPortEnvName)

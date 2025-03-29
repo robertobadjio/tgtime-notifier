@@ -4,7 +4,7 @@ import "os"
 
 // OS ...
 type OS interface {
-	GetEnv(key string) string
+	Getenv(key string) string
 }
 
 type osImpl struct{}
@@ -14,7 +14,7 @@ func NewOS() OS {
 	return &osImpl{}
 }
 
-// GetEnv ...
-func (osImpl) GetEnv(key string) string {
+// Getenv ...
+func (osImpl) Getenv(key string) string {
 	return os.Getenv(key)
 }

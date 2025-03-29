@@ -2,14 +2,13 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewHTTPConfig(t *testing.T) {
+func TestNewKafkaConfig(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
@@ -30,22 +29,15 @@ func TestNewHTTPConfig(t *testing.T) {
 		"create config with port": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
-				osMock.GetenvMock.Expect(httpPortEnvVar).Times(1).Return("8080")
+				osMock.GetenvMock.When(kafkaHostEnvName + "1").Then("127.0.0.1:9092")
+				osMock.GetenvMock.When(kafkaHostEnvName + "2").Then("127.0.0.1:9093")
+				osMock.GetenvMock.When(kafkaHostEnvName + "3").Then("127.0.0.1:9094")
+				osMock.GetenvMock.When(kafkaHostEnvName + "4").Then("")
 
 				return osMock
 			},
 			expectedNilObj: false,
 			expectedErr:    nil,
-		},
-		"create config with empty port": {
-			os: func() OS {
-				osMock := NewOSMock(mc)
-				osMock.GetenvMock.Expect(httpPortEnvVar).Times(1).Return("")
-
-				return osMock
-			},
-			expectedNilObj: true,
-			expectedErr:    fmt.Errorf("environment variable %s must be set", httpPortEnvVar),
 		},
 	}
 
@@ -53,7 +45,7 @@ func TestNewHTTPConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cfg, err := NewHTTPConfig(test.os())
+			cfg, err := NewKafkaConfig(test.os())
 			assert.Equal(t, test.expectedErr, err)
 
 			if test.expectedNilObj {
@@ -65,7 +57,7 @@ func TestNewHTTPConfig(t *testing.T) {
 	}
 }
 
-func TestAddress(t *testing.T) {
+func TestGetAddresses(t *testing.T) {
 	t.Parallel()
 
 	mc := minimock.NewController(t)
@@ -73,16 +65,28 @@ func TestAddress(t *testing.T) {
 	tests := map[string]struct {
 		os func() OS
 
-		expectedString string
+		expectedAddresses []string
 	}{
-		"get address": {
+		"get empty addresses": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
-				osMock.GetenvMock.Expect(httpPortEnvVar).Times(1).Return("8080")
+				osMock.GetenvMock.When(kafkaHostEnvName + "1").Then("")
 
 				return osMock
 			},
-			expectedString: ":8080",
+			expectedAddresses: []string{},
+		},
+		"get addresses": {
+			os: func() OS {
+				osMock := NewOSMock(mc)
+				osMock.GetenvMock.When(kafkaHostEnvName + "1").Then("127.0.0.1:9092")
+				osMock.GetenvMock.When(kafkaHostEnvName + "2").Then("127.0.0.1:9093")
+				osMock.GetenvMock.When(kafkaHostEnvName + "3").Then("127.0.0.1:9094")
+				osMock.GetenvMock.When(kafkaHostEnvName + "4").Then("")
+
+				return osMock
+			},
+			expectedAddresses: []string{"127.0.0.1:9092", "127.0.0.1:9093", "127.0.0.1:9094"},
 		},
 	}
 
@@ -90,10 +94,10 @@ func TestAddress(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cfg, err := NewHTTPConfig(test.os())
+			cfg, err := NewKafkaConfig(test.os())
 			assert.Nil(t, err)
 			assert.NotNil(t, cfg)
-			assert.Equal(t, test.expectedString, cfg.Address())
+			assert.Equal(t, test.expectedAddresses, cfg.GetAddresses())
 		})
 	}
 }

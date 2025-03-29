@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
 )
 
 const botTokenEnvParam = "BOT_TOKEN"
@@ -11,9 +10,9 @@ const webhookLinkEnvParam = "WEBHOOK_LINK"
 
 // TelegramBotConfig ???
 type TelegramBotConfig interface {
-	GetToken() string
-	GetWebhookPath() string
-	GetWebhookLink() string
+	Token() string
+	WebhookPath() string
+	WebhookLink() string
 }
 
 type telegramBotConfig struct {
@@ -22,35 +21,39 @@ type telegramBotConfig struct {
 	webhookLink string
 }
 
-// GetToken ???
-func (t *telegramBotConfig) GetToken() string {
+// Token ???
+func (t *telegramBotConfig) Token() string {
 	return t.token
 }
 
-// GetWebhookPath ???
-func (t *telegramBotConfig) GetWebhookPath() string {
+// WebhookPath ???
+func (t *telegramBotConfig) WebhookPath() string {
 	return t.webhookPath
 }
 
-// GetWebhookLink ???
-func (t *telegramBotConfig) GetWebhookLink() string {
+// WebhookLink ???
+func (t *telegramBotConfig) WebhookLink() string {
 	return t.webhookLink
 }
 
 // NewTelegramBotConfig ???
-func NewTelegramBotConfig() (TelegramBotConfig, error) {
+func NewTelegramBotConfig(os OS) (TelegramBotConfig, error) {
+	if os == nil {
+		return nil, fmt.Errorf("os must not be nil")
+	}
+
 	token := os.Getenv(botTokenEnvParam)
 	if len(token) == 0 {
 		return nil, fmt.Errorf("environment variable %s must be set", botTokenEnvParam)
 	}
 
 	webhookPath := os.Getenv(webhookPathEnvParam)
-	if len(token) == 0 {
+	if len(webhookPath) == 0 {
 		return nil, fmt.Errorf("environment variable %s must be set", webhookPathEnvParam)
 	}
 
 	webhookLink := os.Getenv(webhookLinkEnvParam)
-	if len(token) == 0 {
+	if len(webhookLink) == 0 {
 		return nil, fmt.Errorf("environment variable %s must be set", webhookLinkEnvParam)
 	}
 
