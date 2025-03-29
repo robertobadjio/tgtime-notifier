@@ -8,3 +8,5 @@ pprof/*
 !pprof/.gitkeep
 
 pandora/phout.log
+
+c.out

@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"net"
-	"os"
 )
 
 const httpPortEnvVar = "HTTP_PORT"
@@ -19,8 +18,12 @@ type httpConfig struct {
 }
 
 // NewHTTPConfig ???
-func NewHTTPConfig() (HTTPConfig, error) {
-	port := os.Getenv(httpPortEnvVar)
+func NewHTTPConfig(os OS) (HTTPConfig, error) {
+	if os == nil {
+		return nil, fmt.Errorf("os must not be nil")
+	}
+
+	port := os.GetEnv(httpPortEnvVar)
 	if len(port) == 0 {
 		return nil, fmt.Errorf("environment variable %s must be set", httpPortEnvVar)
 	}

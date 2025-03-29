@@ -45,12 +45,15 @@ type serviceProvider struct {
 
 	promConfig      config.PromConfig
 	pyroscopeConfig config.PyroscopeConfig
+
+	os config.OS
 }
 
 func newServiceProvider() *serviceProvider {
 	return &serviceProvider{}
 }
 
+// HTTPServiceHandler ...
 func (sp *serviceProvider) HTTPServiceHandler(ctx context.Context) http.Handler {
 	if sp.httpServiceHandler == nil {
 		sp.httpServiceHandler = transport.NewHTTPHandler(sp.EndpointsServiceSet(ctx))
@@ -59,23 +62,35 @@ func (sp *serviceProvider) HTTPServiceHandler(ctx context.Context) http.Handler 
 	return sp.httpServiceHandler
 }
 
+// EndpointsServiceSet ...
 func (sp *serviceProvider) EndpointsServiceSet(ctx context.Context) endpoints.Set {
 	sp.endpointsServiceSet = endpoints.NewEndpointSet(sp.APIService(ctx))
 
 	return sp.endpointsServiceSet
 }
 
+// OS ...
+func (sp *serviceProvider) OS() config.OS {
+	if sp.os == nil {
+		sp.os = config.NewOS()
+	}
+
+	return sp.os
+}
+
+// APIService ...
 func (sp *serviceProvider) APIService(_ context.Context) api.Service {
 	if sp.service == nil {
 		sp.service = api.NewNotifierService()
 	}
+
 	return sp.service
 }
 
 // HTTPConfig ...
 func (sp *serviceProvider) HTTPConfig() config.HTTPConfig {
 	if sp.httpConfig == nil {
-		httpConfig, err := config.NewHTTPConfig()
+		httpConfig, err := config.NewHTTPConfig(sp.OS())
 		if err != nil {
 			logger.Fatal("di", "http", "error", err.Error())
 		}
@@ -142,6 +157,7 @@ func (sp *serviceProvider) TelegramConfig() config.TelegramBotConfig {
 	return sp.tgConfig
 }
 
+// TGNotifier ...
 func (sp *serviceProvider) TGNotifier() notifierI.Notifier {
 	if sp.tgNotifier == nil {
 		tgNC, err := telegram.NewTelegramNotifier(sp.TgBot(), sp.TGCommandFactory())
@@ -155,6 +171,7 @@ func (sp *serviceProvider) TGNotifier() notifierI.Notifier {
 	return sp.tgNotifier
 }
 
+// TgBot ...
 func (sp *serviceProvider) TgBot() *TGBotAPI.BotAPI {
 	if sp.tgBot == nil {
 		bot, err := TGBotAPI.NewBotAPI(sp.TelegramConfig().GetToken())
@@ -182,6 +199,7 @@ func (sp *serviceProvider) TgBot() *TGBotAPI.BotAPI {
 	return sp.tgBot
 }
 
+// Kafka ...
 func (sp *serviceProvider) Kafka() *kafka.Kafka {
 	if sp.kafka == nil {
 		sp.kafka = kafka.NewKafka(sp.KafkaConfig(), sp.TGNotifier(), sp.TGTimeAPIClient())
@@ -190,6 +208,7 @@ func (sp *serviceProvider) Kafka() *kafka.Kafka {
 	return sp.kafka
 }
 
+// TGTimeAPIConfig ...
 func (sp *serviceProvider) TGTimeAPIConfig() config.TgTimeAPIConfig {
 	if sp.tgTimeAPIConfig == nil {
 		c, err := config.NewTgTimeAPIConfig()
@@ -203,6 +222,7 @@ func (sp *serviceProvider) TGTimeAPIConfig() config.TgTimeAPIConfig {
 	return sp.tgTimeAPIConfig
 }
 
+// TGTimeAPIClient ...
 func (sp *serviceProvider) TGTimeAPIClient() api_pb.Client {
 	if sp.tgTimeAPIClient == nil {
 		sp.tgTimeAPIClient = api_pb.NewClient(sp.TGTimeAPIConfig())
@@ -211,6 +231,7 @@ func (sp *serviceProvider) TGTimeAPIClient() api_pb.Client {
 	return sp.tgTimeAPIClient
 }
 
+// TGTimeAggregatorConfig ...
 func (sp *serviceProvider) TGTimeAggregatorConfig() config.TgTimeAPIConfig {
 	if sp.tgTimeAggregatorConfig == nil {
 		c, err := config.NewTgTimeAggregatorConfig()
@@ -224,6 +245,7 @@ func (sp *serviceProvider) TGTimeAggregatorConfig() config.TgTimeAPIConfig {
 	return sp.tgTimeAggregatorConfig
 }
 
+// TGTimeAggregatorClient ...
 func (sp *serviceProvider) TGTimeAggregatorClient() aggregator.Client {
 	if sp.tgTimeAggregatorClient == nil {
 		sp.tgTimeAggregatorClient = aggregator.NewClient(sp.TGTimeAggregatorConfig())
@@ -232,6 +254,7 @@ func (sp *serviceProvider) TGTimeAggregatorClient() aggregator.Client {
 	return sp.tgTimeAggregatorClient
 }
 
+// PreviousDayInfo ...
 func (sp *serviceProvider) PreviousDayInfo() previous_day_info.PreviousDayInfo {
 	if sp.previousDayInfo == nil {
 		sp.previousDayInfo = previous_day_info.NewPreviousDayInfo(
@@ -244,6 +267,7 @@ func (sp *serviceProvider) PreviousDayInfo() previous_day_info.PreviousDayInfo {
 	return sp.previousDayInfo
 }
 
+// TGCommandFactory ...
 func (sp *serviceProvider) TGCommandFactory() command.Factory {
 	if sp.tgCommandFactory == nil {
 		sp.tgCommandFactory = command.NewFactory(
