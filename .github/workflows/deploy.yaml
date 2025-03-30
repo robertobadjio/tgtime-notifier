@@ -88,7 +88,9 @@ jobs:
             username: ${{ secrets.DEPLOY_USER }}
             password: ${{ secrets.DEPLOY_PASSWORD }}
             port: ${{ secrets.DEPLOY_PORT }}
-            script: whoami
+            script: |
+              whoami
+              ls -al
 
         #- name: Run container
         #  run: |
