@@ -70,6 +70,7 @@ func (a *App) initServiceProvider(_ context.Context) error {
 	return nil
 }
 
+// nolint
 func (a *App) initPyroscope(_ context.Context) error {
 	_, err := pyroscope.Start(pyroscope.Config{
 		ApplicationName: "notify.app",
@@ -245,6 +246,7 @@ func (a *App) initTGUpdateHandle(ctx context.Context) error {
 	return nil
 }
 
+// nolint
 func (a *App) initPrometheus(ctx context.Context) error {
 	err := metric.Init(ctx)
 	if err != nil {
