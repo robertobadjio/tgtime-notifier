@@ -47,8 +47,8 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initTGUpdateHandle,
 		a.initCheckInOfficeConsumer,
 		a.initCheckPreviousDayInfo,
-		a.initPrometheus,
-		a.initPyroscope,
+		//a.initPrometheus,
+		//a.initPyroscope,
 	}
 
 	for _, f := range inits {
