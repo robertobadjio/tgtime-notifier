@@ -16,9 +16,9 @@ help: ## Help
 
 install-deps-mac: ## Install dependencies for MAC
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s v1.64.5
-	wget https://github.com/yandex/pandora/releases/download/v0.5.32/pandora_0.5.32_darwin_amd64 -O ./bin/pandora
-	chmod a+x ./bin/pandora
-	wget -qO- https://github.com/gojuno/minimock/releases/download/v3.4.5/minimock_3.4.5_darwin_amd64.tar.gz | gunzip | tar xvf - -C ./bin minimock
+	wget https://github.com/yandex/pandora/releases/download/v0.5.32/pandora_0.5.32_darwin_amd64 -O $(BIN_DIR)/pandora
+	chmod a+x $(BIN_DIR)/pandora
+	wget -qO- https://github.com/gojuno/minimock/releases/download/v3.4.5/minimock_3.4.5_darwin_amd64.tar.gz | gunzip | tar xvf - -C $(BIN_DIR) minimock
 
 fmt: ## Automatically format source code
 	go fmt ./...

@@ -11,9 +11,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  #ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-  #ACTIONS_RUNNER_FORCED_INTERNAL_NODE_VERSION: node16
-  #ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
 
 jobs:
     build:
@@ -76,16 +73,21 @@ jobs:
       steps:
         - name: Log in to the Container registry
           uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-          #env:
-            #ACTIONS_RUNNER_FORCED_INTERNAL_NODE_VERSION: node16
-            #ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
-            #ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
           with:
             registry: ${{ env.REGISTRY }}
             username: ${{ github.actor }}
             password: ${{ secrets.GITHUB_TOKEN }}
 
-        - name: Run container
-          run: |
-            cd /opt/tgtime-notifier
-            docker-compose up --build --pull=always &
+        - name: executing remote ssh commands using password
+          uses: appleboy/ssh-action@v1
+          with:
+            host: ${{ secrets.DEPLOY_HOST }}
+            username: ${{ secrets.DEPLOY_USER }}
+            password: ${{ secrets.DEPLOY_PASSWORD }}
+            port: ${{ secrets.DEPLOY_PORT }}
+            script: whoami
+
+        #- name: Run container
+        #  run: |
+        #    cd /opt/tgtime-notifier
+        #    docker-compose up --build --pull=always &
