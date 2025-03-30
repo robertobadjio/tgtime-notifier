@@ -80,7 +80,7 @@ jobs:
             password: ${{ secrets.GITHUB_TOKEN }}
 
         - name: executing remote ssh commands using password
-          uses: appleboy/ssh-action@v1
+          uses: appleboy/ssh-action@v1.2.2
           with:
             host: ${{ secrets.DEPLOY_HOST }}
             username: ${{ secrets.DEPLOY_USER }}
