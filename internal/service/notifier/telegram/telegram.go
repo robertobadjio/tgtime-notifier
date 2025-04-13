@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,22 +12,28 @@ import (
 	command2 "github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram/command"
 )
 
-// TgNotifier Telegram-нотификатор
-type notifier struct {
-	bot     *TGBotAPI.BotAPI
-	factory command2.Factory
+// BotAPIInterface ...
+type BotAPIInterface interface {
+	Send(c TGBotAPI.Chattable) (TGBotAPI.Message, error)
 }
 
-// ParamsUpdate ???
+// TgNotifier Telegram-нотификатор
+type notifier struct {
+	bot     BotAPIInterface
+	factory command2.Factory
+	metrics metric.Metrics
+}
+
+// ParamsUpdate ...
 type ParamsUpdate struct {
 	Update TGBotAPI.Update
 }
 
-// ParamsWorkingTime ???
+// ParamsWorkingTime ...
 type ParamsWorkingTime struct {
 }
 
-// ParamsPreviousDayInfo ???
+// ParamsPreviousDayInfo ...
 type ParamsPreviousDayInfo struct {
 	TelegramID   int64
 	SecondsStart time.Time
@@ -36,42 +43,50 @@ type ParamsPreviousDayInfo struct {
 	Breaks       string
 }
 
-// ParamsWelcomeMessage ???
+// ParamsWelcomeMessage ...
 type ParamsWelcomeMessage struct {
 	TelegramID int64
 }
 
 // NewTelegramNotifier Конструктор для создания Telegram-нотификатора
 func NewTelegramNotifier(
-	bot *TGBotAPI.BotAPI,
+	bot BotAPIInterface,
 	factory command2.Factory,
+	metrics metric.Metrics,
 ) (notifierI.Notifier, error) {
-	return &notifier{bot: bot, factory: factory}, nil
+	if bot == nil {
+		return nil, errors.New("telegram bot is nil")
+	}
+
+	if factory == nil {
+		return nil, errors.New("telegram factory is nil")
+	}
+
+	if metrics == nil {
+		return nil, errors.New("metrics is nil")
+	}
+
+	return &notifier{bot: bot, factory: factory, metrics: metrics}, nil
 }
 
-// Bot Получение Telegram Bot API
-func (tn *notifier) Bot() *TGBotAPI.BotAPI {
-	return tn.bot
-}
-
+// Factory ...
 func (tn *notifier) Factory() command2.Factory {
 	return tn.factory
 }
 
-// SetKeyboard ???
-func (tn *notifier) SetKeyboard(message TGBotAPI.MessageConfig) TGBotAPI.MessageConfig {
+func (tn *notifier) setKeyboard(message TGBotAPI.MessageConfig) TGBotAPI.MessageConfig {
 	message.ReplyMarkup = TGBotAPI.NewReplyKeyboard(
 		TGBotAPI.NewKeyboardButtonRow(
 			TGBotAPI.NewKeyboardButton(string(command2.ButtonWorkingTime)),
 			TGBotAPI.NewKeyboardButton(string(command2.ButtonStatCurrentWorkingPeriod)),
 		),
 	)
+
 	return message
 }
 
-// SendMessage ...
-func (tn *notifier) SendMessage(text string, telegramID int64) error {
-	_, err := tn.Bot().Send(tn.SetKeyboard(TGBotAPI.NewMessage(
+func (tn *notifier) sendMessage(text string, telegramID int64) error {
+	_, err := tn.bot.Send(tn.setKeyboard(TGBotAPI.NewMessage(
 		telegramID,
 		text,
 	)))
@@ -79,7 +94,7 @@ func (tn *notifier) SendMessage(text string, telegramID int64) error {
 		return fmt.Errorf("error send message: %w", err)
 	}
 
-	metric.IncMessageCounter()
+	tn.metrics.IncMessageCounter()
 
 	return nil
 }

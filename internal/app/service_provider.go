@@ -12,6 +12,7 @@ import (
 	"github.com/robertobadjio/tgtime-notifier/internal/config"
 	"github.com/robertobadjio/tgtime-notifier/internal/kafka"
 	"github.com/robertobadjio/tgtime-notifier/internal/logger"
+	"github.com/robertobadjio/tgtime-notifier/internal/metric"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/client/aggregator"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
 	notifierI "github.com/robertobadjio/tgtime-notifier/internal/service/notifier"
@@ -45,6 +46,7 @@ type serviceProvider struct {
 
 	promConfig      config.PromConfig
 	pyroscopeConfig config.PyroscopeConfig
+	metrics         metric.Metrics
 
 	os config.OS
 }
@@ -115,6 +117,15 @@ func (sp *serviceProvider) PromConfig() config.PromConfig {
 	return sp.promConfig
 }
 
+// Metrics ...
+func (sp *serviceProvider) Metrics() metric.Metrics {
+	if sp.metrics == nil {
+		sp.metrics = metric.NewMetrics()
+	}
+
+	return sp.metrics
+}
+
 // PyroscopeConfig ...
 func (sp *serviceProvider) PyroscopeConfig() config.PyroscopeConfig {
 	if sp.pyroscopeConfig == nil {
@@ -160,7 +171,7 @@ func (sp *serviceProvider) TelegramConfig() config.TelegramBotConfig {
 // TGNotifier ...
 func (sp *serviceProvider) TGNotifier() notifierI.Notifier {
 	if sp.tgNotifier == nil {
-		tgNC, err := telegram.NewTelegramNotifier(sp.TgBot(), sp.TGCommandFactory())
+		tgNC, err := telegram.NewTelegramNotifier(sp.TgBot(), sp.TGCommandFactory(), sp.Metrics())
 		if err != nil {
 			logger.Fatal("di", "tgNotifier", "error", err.Error())
 		}

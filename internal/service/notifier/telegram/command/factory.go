@@ -6,7 +6,7 @@ import (
 	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
 )
 
-// Factory ???
+// Factory ...
 type Factory interface {
 	GetCommandHandler(update tgbotapi.Update) Command
 }
@@ -16,7 +16,7 @@ type factory struct {
 	TGTimeAggregatorClient aggregator.Client
 }
 
-// NewFactory ???
+// NewFactory ...
 func NewFactory(TGTimeAPIClient api_pb.Client, TGTimeAggregatorClient aggregator.Client) Factory {
 	return &factory{
 		TGTimeAPIClient:        TGTimeAPIClient,
@@ -24,6 +24,7 @@ func NewFactory(TGTimeAPIClient api_pb.Client, TGTimeAggregatorClient aggregator
 	}
 }
 
+// GetCommandHandler ...
 func (f *factory) GetCommandHandler(update tgbotapi.Update) Command {
 	switch Type(update.Message.Text) {
 	case ButtonStart:

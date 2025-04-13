@@ -7,7 +7,7 @@ import (
 	notifierI "github.com/robertobadjio/tgtime-notifier/internal/service/notifier"
 )
 
-// SendPreviousDayInfoMessage ???
+// SendPreviousDayInfoMessage ...
 func (tn *notifier) SendPreviousDayInfoMessage(_ context.Context, params notifierI.Params) error {
 	p, ok := params.(ParamsPreviousDayInfo)
 	if !ok {
@@ -26,5 +26,5 @@ func (tn *notifier) SendPreviousDayInfoMessage(_ context.Context, params notifie
 		message += fmt.Sprintf("\nПерерывы %s\n", p.Breaks)
 	}
 
-	return tn.SendMessage(message, p.TelegramID)
+	return tn.sendMessage(message, p.TelegramID)
 }

@@ -2,7 +2,6 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
@@ -41,12 +40,13 @@ func TestPyroscopeConfig_New(t *testing.T) {
 		"create config with empty host": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
-				osMock.GetenvMock.Expect(pyroscopeHostEnvName).Times(1).Return("")
+				osMock.GetenvMock.When(pyroscopeHostEnvName).Then("")
+				osMock.GetenvMock.When(pyroscopePortEnvName).Then("4040")
 
 				return osMock
 			},
-			expectedNilObj: true,
-			expectedErr:    fmt.Errorf("environment variable %s not set", pyroscopeHostEnvName),
+			expectedNilObj: false,
+			expectedErr:    nil,
 		},
 		"create config with empty port": {
 			os: func() OS {
@@ -56,8 +56,19 @@ func TestPyroscopeConfig_New(t *testing.T) {
 
 				return osMock
 			},
-			expectedNilObj: true,
-			expectedErr:    fmt.Errorf("environment variable %s not set", pyroscopePortEnvName),
+			expectedNilObj: false,
+			expectedErr:    nil,
+		},
+		"create config with empty host and port": {
+			os: func() OS {
+				osMock := NewOSMock(mc)
+				osMock.GetenvMock.When(pyroscopeHostEnvName).Then("")
+				osMock.GetenvMock.When(pyroscopePortEnvName).Then("")
+
+				return osMock
+			},
+			expectedNilObj: false,
+			expectedErr:    nil,
 		},
 	}
 
@@ -66,6 +77,7 @@ func TestPyroscopeConfig_New(t *testing.T) {
 			t.Parallel()
 
 			cfg, err := NewPyroscopeConfig(test.os())
+			assert.Equal(t, test.expectedErr, err)
 			assert.Equal(t, test.expectedErr, err)
 
 			if test.expectedNilObj {

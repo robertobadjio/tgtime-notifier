@@ -8,7 +8,7 @@ const botTokenEnvParam = "BOT_TOKEN"
 const webhookPathEnvParam = "WEBHOOK_PATH"
 const webhookLinkEnvParam = "WEBHOOK_LINK"
 
-// TelegramBotConfig ???
+// TelegramBotConfig ...
 type TelegramBotConfig interface {
 	Token() string
 	WebhookPath() string
@@ -21,22 +21,22 @@ type telegramBotConfig struct {
 	webhookLink string
 }
 
-// Token ???
+// Token ...
 func (t *telegramBotConfig) Token() string {
 	return t.token
 }
 
-// WebhookPath ???
+// WebhookPath ...
 func (t *telegramBotConfig) WebhookPath() string {
 	return t.webhookPath
 }
 
-// WebhookLink ???
+// WebhookLink ...
 func (t *telegramBotConfig) WebhookLink() string {
 	return t.webhookLink
 }
 
-// NewTelegramBotConfig ???
+// NewTelegramBotConfig ...
 func NewTelegramBotConfig(os OS) (TelegramBotConfig, error) {
 	if os == nil {
 		return nil, fmt.Errorf("os must not be nil")

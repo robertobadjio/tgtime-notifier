@@ -15,7 +15,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/robertobadjio/tgtime-notifier/internal/logger"
-	"github.com/robertobadjio/tgtime-notifier/internal/metric"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
 )
 
@@ -47,8 +46,8 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initTGUpdateHandle,
 		a.initCheckInOfficeConsumer,
 		a.initCheckPreviousDayInfo,
-		//a.initPrometheus,
-		//a.initPyroscope,
+		a.initPrometheus,
+		a.initPyroscope,
 	}
 
 	for _, f := range inits {
@@ -70,10 +69,13 @@ func (a *App) initServiceProvider(_ context.Context) error {
 	return nil
 }
 
-// nolint
 func (a *App) initPyroscope(_ context.Context) error {
+	if !a.serviceProvider.PyroscopeConfig().Enabled() {
+		return nil
+	}
+
 	_, err := pyroscope.Start(pyroscope.Config{
-		ApplicationName: "notify.app",
+		ApplicationName: "notify.app", // TODO: const
 		ServerAddress:   "http://" + a.serviceProvider.PyroscopeConfig().Address(),
 		Logger:          pyroscope.StandardLogger,
 		ProfileTypes: []pyroscope.ProfileType{
@@ -247,11 +249,8 @@ func (a *App) initTGUpdateHandle(ctx context.Context) error {
 }
 
 // nolint
-func (a *App) initPrometheus(ctx context.Context) error {
-	err := metric.Init(ctx)
-	if err != nil {
-		return err
-	}
+func (a *App) initPrometheus(_ context.Context) error {
+	//_ = metric.NewMetrics()
 
 	httpListener, err := net.Listen("tcp", a.serviceProvider.PromConfig().Address())
 	if err != nil {

@@ -4,10 +4,10 @@ import (
 	"context"
 )
 
-// Params ???
+// Params ...
 type Params interface{}
 
-// Notifier ???
+// Notifier ...
 type Notifier interface {
 	SendCommandMessage(ctx context.Context, params Params) error
 	SendWelcomeMessage(ctx context.Context, params Params) error

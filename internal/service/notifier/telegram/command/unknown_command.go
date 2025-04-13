@@ -6,12 +6,12 @@ import (
 
 type unknownCommand struct{}
 
-// NewUnknownCommand ???
+// NewUnknownCommand ...
 func NewUnknownCommand() Command {
 	return &unknownCommand{}
 }
 
-// GetMessage Метод получения текста сообщения о неизвестной команде
+// GetMessage Метод получения текста сообщения о неизвестной команде.
 func (unknownCommand) GetMessage(_ context.Context) (string, error) {
 	return "Неизвестная команда", nil
 }

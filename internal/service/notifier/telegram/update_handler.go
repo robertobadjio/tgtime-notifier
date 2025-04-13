@@ -7,17 +7,17 @@ import (
 	notifierI "github.com/robertobadjio/tgtime-notifier/internal/service/notifier"
 )
 
-// SendCommandMessage Метод для отправки сообщения в ответ на команду пользователя
+// SendCommandMessage Метод для отправки сообщения в ответ на команду пользователя.
 func (tn *notifier) SendCommandMessage(ctx context.Context, params notifierI.Params) error {
 	p, ok := params.(ParamsUpdate)
 	if !ok {
 		return fmt.Errorf("error cast interface param")
 	}
 
-	message, err := tn.Factory().GetCommandHandler(p.Update).GetMessage(ctx)
+	message, err := tn.factory.GetCommandHandler(p.Update).GetMessage(ctx)
 	if err != nil {
 		return fmt.Errorf("error getting text message: %w", err)
 	}
 
-	return tn.SendMessage(message, int64(p.Update.Message.From.ID))
+	return tn.sendMessage(message, int64(p.Update.Message.From.ID))
 }

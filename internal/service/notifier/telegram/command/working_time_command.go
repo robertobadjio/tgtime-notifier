@@ -18,7 +18,7 @@ type workingTimeCommand struct {
 	TelegramID             int64
 }
 
-// NewWorkingTimeCommand ???
+// NewWorkingTimeCommand ...
 func NewWorkingTimeCommand(TGTimeAPIClient api_pb.Client, TGTimeAggregatorClient aggregator.Client, telegramID int64) Command {
 	return &workingTimeCommand{
 		TGTimeAPIClient:        TGTimeAPIClient,
@@ -27,7 +27,7 @@ func NewWorkingTimeCommand(TGTimeAPIClient api_pb.Client, TGTimeAggregatorClient
 	}
 }
 
-// GetMessage ???
+// GetMessage ...
 func (wtc *workingTimeCommand) GetMessage(ctx context.Context) (string, error) {
 	user, err := wtc.TGTimeAPIClient.GetUserByTelegramID(ctx, wtc.TelegramID)
 	if err != nil {
@@ -67,7 +67,7 @@ func (wtc *workingTimeCommand) GetMessage(ctx context.Context) (string, error) {
 	return mes, nil
 }
 
-// SecondsToHM ???
+// SecondsToHM ...
 func SecondsToHM(seconds int64) (int64, int64) {
 	hours := seconds / 3600
 	minutes := (seconds / 60) - (hours * 60)
@@ -98,12 +98,12 @@ func BuildBreaks(breaks []*time_v1.Break) []string {
 	return output
 }
 
-// BreaksToString ???
+// BreaksToString ...
 func BreaksToString(breaks []string) string {
 	return strings.Join(breaks, ", ")
 }
 
-// SecondsToTime ???
+// SecondsToTime ...
 func SecondsToTime(seconds int64) time.Time {
 	return time.Unix(seconds, 0)
 }

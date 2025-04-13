@@ -11,8 +11,8 @@ pools:
       destination: ./pandora/phout.log
     rps:
       type: line
-      from: 5
-      to: 7
+      from: 10
+      to: 100
       duration: 60s
     startup:
       type: once

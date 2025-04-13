@@ -1,8 +1,6 @@
 package metric
 
 import (
-	"context"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -12,16 +10,19 @@ const (
 	appName   = "notifier"
 )
 
-// Metrics ???
-type Metrics struct {
+// Metrics ...
+type Metrics interface {
+	IncMessageCounter()
+}
+
+// Metrics ...
+type metrics struct {
 	messageCounter prometheus.Counter
 }
 
-var metrics *Metrics
-
-// Init ???
-func Init(_ context.Context) error {
-	metrics = &Metrics{
+// NewMetrics ...
+func NewMetrics() Metrics {
+	return &metrics{
 		messageCounter: promauto.NewCounter(
 			prometheus.CounterOpts{
 				Namespace: namespace,
@@ -31,11 +32,9 @@ func Init(_ context.Context) error {
 			},
 		),
 	}
-
-	return nil
 }
 
 // IncMessageCounter ...
-func IncMessageCounter() {
-	metrics.messageCounter.Inc()
+func (m *metrics) IncMessageCounter() {
+	m.messageCounter.Inc()
 }

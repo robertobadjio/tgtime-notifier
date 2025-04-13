@@ -7,12 +7,12 @@ import (
 type statCurrentWorkingPeriodCommand struct {
 }
 
-// NewStatCurrentWorkingPeriodCommand ???
+// NewStatCurrentWorkingPeriodCommand ...
 func NewStatCurrentWorkingPeriodCommand() Command {
 	return &statCurrentWorkingPeriodCommand{}
 }
 
-// GetMessage ???
+// GetMessage ...
 func (scwpc *statCurrentWorkingPeriodCommand) GetMessage(_ context.Context) (string, error) {
 	// TODO: Implement method
 	return "", nil
