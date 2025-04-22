@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS build
+FROM golang:1.24-alpine AS build
 
 RUN apk update && apk add tzdata
 
@@ -19,6 +19,6 @@ COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /tgtime-notifier .
 COPY --from=ghcr.io/tarampampam/curl:8.6.0 /bin/curl /bin/curl
 
-ENV TZ Europe/Moscow
+ENV TZ=Europe/Moscow
 
 CMD ["/tgtime-notifier", "--config", "config"]
