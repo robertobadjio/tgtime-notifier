@@ -73,10 +73,10 @@ prof-trace: ## Trace profiling CLI version
 
 minimock-gen: ## Generate mocks
 	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/config.OS -o ./internal/config/os_mock.go
-	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/notifier/telegram.BotAPIInterface -o ./internal/service/notifier/telegram/telegram_bot_mock.go
-	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/notifier/telegram/command.Factory -o ./internal/service/notifier/telegram/command/factory_mock.go
-	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/notifier/telegram/command.Command -o ./internal/service/notifier/telegram/command/command_mock.go
-	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/metric.Metrics -o ./internal/metric/metrics_mock.go
+	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/notifier/telegram.metrics -o ./internal/service/notifier/telegram/metrics_mock.go
+	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/notifier/telegram.botAPI -o ./internal/service/notifier/telegram/bot_api_mock.go
+	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/notifier/telegram.aggregatorClient -o ./internal/service/notifier/telegram/aggregator_client_mock.go
+	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/notifier/telegram.apiPBClient -o ./internal/service/notifier/telegram/api_pb_client_mock.go
 
 test-unit: ## Run unit tests
 	$(GO_TEST_COMMAND) \

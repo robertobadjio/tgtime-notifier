@@ -15,9 +15,7 @@ import (
 	"github.com/robertobadjio/tgtime-notifier/internal/metric"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/client/aggregator"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
-	notifierI "github.com/robertobadjio/tgtime-notifier/internal/service/notifier"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
-	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram/command"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/previous_day_info"
 )
 
@@ -28,10 +26,9 @@ type serviceProvider struct {
 	endpointsServiceSet endpoints.Set
 	service             api.Service
 
-	tgConfig         config.TelegramBotConfig
-	tgBot            *TGBotAPI.BotAPI
-	tgNotifier       notifierI.Notifier
-	tgCommandFactory command.Factory
+	tgConfig   config.TelegramBotConfig
+	tgBot      *TGBotAPI.BotAPI
+	tgNotifier *telegram.TGNotifier
 
 	kafkaConfig config.KafkaConfig
 	kafka       *kafka.Kafka
@@ -46,7 +43,7 @@ type serviceProvider struct {
 
 	promConfig      config.PromConfig
 	pyroscopeConfig config.PyroscopeConfig
-	metrics         metric.Metrics
+	metrics         *metric.Metrics
 
 	os config.OS
 }
@@ -118,7 +115,7 @@ func (sp *serviceProvider) PromConfig() config.PromConfig {
 }
 
 // Metrics ...
-func (sp *serviceProvider) Metrics() metric.Metrics {
+func (sp *serviceProvider) Metrics() *metric.Metrics {
 	if sp.metrics == nil {
 		sp.metrics = metric.NewMetrics()
 	}
@@ -169,9 +166,14 @@ func (sp *serviceProvider) TelegramConfig() config.TelegramBotConfig {
 }
 
 // TGNotifier ...
-func (sp *serviceProvider) TGNotifier() notifierI.Notifier {
+func (sp *serviceProvider) TGNotifier() *telegram.TGNotifier {
 	if sp.tgNotifier == nil {
-		tgNC, err := telegram.NewTelegramNotifier(sp.TgBot(), sp.TGCommandFactory(), sp.Metrics())
+		tgNC, err := telegram.NewTelegramNotifier(
+			sp.TgBot(),
+			sp.Metrics(),
+			sp.TGTimeAPIClient(),
+			sp.TGTimeAggregatorClient(),
+		)
 		if err != nil {
 			logger.Fatal("di", "tgNotifier", "error", err.Error())
 		}
@@ -276,16 +278,4 @@ func (sp *serviceProvider) PreviousDayInfo() previous_day_info.PreviousDayInfo {
 	}
 
 	return sp.previousDayInfo
-}
-
-// TGCommandFactory ...
-func (sp *serviceProvider) TGCommandFactory() command.Factory {
-	if sp.tgCommandFactory == nil {
-		sp.tgCommandFactory = command.NewFactory(
-			sp.TGTimeAPIClient(),
-			sp.TGTimeAggregatorClient(),
-		)
-	}
-
-	return sp.tgCommandFactory
 }

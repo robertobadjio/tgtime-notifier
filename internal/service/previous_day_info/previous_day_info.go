@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/robertobadjio/tgtime-notifier/internal/helper"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/client/aggregator"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
-	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
-	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram/command"
 )
 
 // PreviousDayInfo ...
@@ -17,17 +16,21 @@ type PreviousDayInfo interface {
 	Run(ctx context.Context) error
 }
 
+type notifier interface {
+	SendPreviousDayInfoMessage(ctx context.Context, params telegram.ParamsPreviousDayInfo) error
+}
+
 type previousDayInfo struct {
 	tgTimeAPIClient        api_pb.Client
 	tgTimeAggregatorClient aggregator.Client
-	notifier               notifier.Notifier
+	notifier               notifier
 }
 
 // NewPreviousDayInfo ???
 func NewPreviousDayInfo(
 	tgTimeAPIClient api_pb.Client,
 	tgTimeAggregatorClient aggregator.Client,
-	notifier notifier.Notifier,
+	notifier notifier,
 ) PreviousDayInfo {
 	return &previousDayInfo{
 		tgTimeAPIClient:        tgTimeAPIClient,
@@ -51,28 +54,28 @@ func (pdi *previousDayInfo) Run(ctx context.Context) error {
 	}
 
 	for _, summaryByUser := range timeSummaryResponse.Summary {
-		user, err := pdi.tgTimeAPIClient.GetUserByMacAddress(ctx, summaryByUser.MacAddress)
-		if err != nil {
+		user, errGetUserByMACAddress := pdi.tgTimeAPIClient.GetUserByMacAddress(ctx, summaryByUser.MacAddress)
+		if errGetUserByMACAddress != nil {
 			// TODO: log error
 			continue
 			//return fmt.Errorf("error getting user by telegram id: %w", err)
 		}
 
-		hours, minutes := command.SecondsToHM(summaryByUser.GetSeconds())
+		hours, minutes := helper.SecondsToHM(summaryByUser.GetSeconds())
 
-		err = pdi.notifier.SendPreviousDayInfoMessage(
+		errSendPreviousDayInfo := pdi.notifier.SendPreviousDayInfoMessage(
 			ctx,
 			telegram.ParamsPreviousDayInfo{
 				TelegramID:   user.GetUser().TelegramId,
-				SecondsStart: command.SecondsToTime(summaryByUser.GetSecondsStart()),
-				SecondsEnd:   command.SecondsToTime(summaryByUser.GetSecondsEnd()),
+				SecondsStart: helper.SecondsToTime(summaryByUser.GetSecondsStart()),
+				SecondsEnd:   helper.SecondsToTime(summaryByUser.GetSecondsEnd()),
 				Hours:        hours,
 				Minutes:      minutes,
-				Breaks:       command.BreaksToString(command.BuildBreaks(summaryByUser.Breaks)),
+				Breaks:       helper.BreaksToString(helper.BuildBreaks(summaryByUser.Breaks)),
 			},
 		)
-		if err != nil {
-			return fmt.Errorf("error sending previous day info message: %w", err)
+		if errSendPreviousDayInfo != nil {
+			return fmt.Errorf("error sending previous day info message: %w", errSendPreviousDayInfo)
 		}
 	}
 

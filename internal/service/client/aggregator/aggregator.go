@@ -36,7 +36,7 @@ func NewClient(cfg config.TgTimeAPIConfig) Client {
 	return &client{client: pb.NewTimeV1Client(conn)}
 }
 
-// GetTimeSummary Получение времени сотрудника
+// GetTimeSummary Получение времени сотрудника.
 func (tc *client) GetTimeSummary(
 	ctx context.Context,
 	macAddress, date string,

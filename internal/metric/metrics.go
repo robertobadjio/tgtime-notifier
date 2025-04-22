@@ -11,18 +11,13 @@ const (
 )
 
 // Metrics ...
-type Metrics interface {
-	IncMessageCounter()
-}
-
-// Metrics ...
-type metrics struct {
+type Metrics struct {
 	messageCounter prometheus.Counter
 }
 
 // NewMetrics ...
-func NewMetrics() Metrics {
-	return &metrics{
+func NewMetrics() *Metrics {
+	return &Metrics{
 		messageCounter: promauto.NewCounter(
 			prometheus.CounterOpts{
 				Namespace: namespace,
@@ -35,6 +30,6 @@ func NewMetrics() Metrics {
 }
 
 // IncMessageCounter ...
-func (m *metrics) IncMessageCounter() {
+func (m *Metrics) IncMessageCounter() {
 	m.messageCounter.Inc()
 }

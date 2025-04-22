@@ -6,9 +6,7 @@ import (
 
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/robertobadjio/tgtime-notifier/internal/metric"
-	command2 "github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram/command"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTelegramNotifier_New(t *testing.T) {
@@ -17,52 +15,126 @@ func TestTelegramNotifier_New(t *testing.T) {
 	mc := minimock.NewController(t)
 
 	tests := map[string]struct {
-		bot     func() BotAPIInterface
-		factory func() command2.Factory
-		metrics func() metric.Metrics
+		bot              func() botAPI
+		metrics          func() metrics
+		apiPBClient      func() apiPBClient
+		aggregatorClient func() aggregatorClient
 
 		expectedNilObj bool
 		expectedErr    error
 	}{
 		"telegram bot is nil": {
-			bot:            func() BotAPIInterface { return nil },
-			factory:        func() command2.Factory { return nil },
-			metrics:        func() metric.Metrics { return nil },
-			expectedNilObj: true,
-			expectedErr:    errors.New("telegram bot is nil"),
-		},
-		"telegram factory is nil": {
-			bot: func() BotAPIInterface {
-				return NewBotAPIInterfaceMock(mc)
-			},
-			factory:        func() command2.Factory { return nil },
-			metrics:        func() metric.Metrics { return nil },
-			expectedNilObj: true,
-			expectedErr:    errors.New("telegram factory is nil"),
-		},
-		"metrics is nil": {
-			bot: func() BotAPIInterface {
-				return NewBotAPIInterfaceMock(mc)
-			},
-			factory: func() command2.Factory {
-				return command2.NewFactoryMock(mc)
-			},
-			metrics: func() metric.Metrics {
+			bot: func() botAPI {
 				return nil
 			},
+			metrics: func() metrics {
+				return nil
+			},
+			apiPBClient: func() apiPBClient {
+				return nil
+			},
+			aggregatorClient: func() aggregatorClient {
+				return nil
+			},
+
 			expectedNilObj: true,
-			expectedErr:    errors.New("metrics is nil"),
+			expectedErr:    errors.New("telegram bot must be set"),
 		},
-		"create telegram notifier": {
-			bot: func() BotAPIInterface {
-				return NewBotAPIInterfaceMock(mc)
+		"metrics is nil": {
+			bot: func() botAPI {
+				botMock := NewBotAPIMock(mc)
+				require.NotNil(t, botMock)
+
+				return botMock
 			},
-			factory: func() command2.Factory {
-				return command2.NewFactoryMock(mc)
+			metrics: func() metrics {
+				return nil
 			},
-			metrics: func() metric.Metrics {
-				return metric.NewMetricsMock(mc)
+			apiPBClient: func() apiPBClient {
+				return nil
 			},
+			aggregatorClient: func() aggregatorClient {
+				return nil
+			},
+
+			expectedNilObj: true,
+			expectedErr:    errors.New("metrics must be set"),
+		},
+		"api pb client is nil": {
+			bot: func() botAPI {
+				botMock := NewBotAPIMock(mc)
+				require.NotNil(t, botMock)
+
+				return botMock
+			},
+			metrics: func() metrics {
+				metricsMock := NewMetricsMock(mc)
+				require.NotNil(t, metricsMock)
+
+				return metricsMock
+			},
+			apiPBClient: func() apiPBClient {
+				return nil
+			},
+			aggregatorClient: func() aggregatorClient {
+				return nil
+			},
+
+			expectedNilObj: true,
+			expectedErr:    errors.New("TGTimeAPIClient must be set"),
+		},
+		"aggregator client is nil": {
+			bot: func() botAPI {
+				botMock := NewBotAPIMock(mc)
+				require.NotNil(t, botMock)
+
+				return botMock
+			},
+			metrics: func() metrics {
+				metricsMock := NewMetricsMock(mc)
+				require.NotNil(t, metricsMock)
+
+				return metricsMock
+			},
+			apiPBClient: func() apiPBClient {
+				clientMock := NewApiPBClientMock(mc)
+				require.NotNil(t, clientMock)
+
+				return clientMock
+			},
+			aggregatorClient: func() aggregatorClient {
+				return nil
+			},
+
+			expectedNilObj: true,
+			expectedErr:    errors.New("TGTimeAggregatorClient must be set"),
+		},
+		"create telegram TGNotifier": {
+			bot: func() botAPI {
+				botMock := NewBotAPIMock(mc)
+				require.NotNil(t, botMock)
+
+				return botMock
+			},
+			metrics: func() metrics {
+				metricsMock := NewMetricsMock(mc)
+				require.NotNil(t, metricsMock)
+
+				return metricsMock
+			},
+			apiPBClient: func() apiPBClient {
+				clientMock := NewApiPBClientMock(mc)
+				require.NotNil(t, clientMock)
+
+				return clientMock
+			},
+			aggregatorClient: func() aggregatorClient {
+				clientMock := NewAggregatorClientMock(mc)
+				require.NotNil(t, clientMock)
+
+				return clientMock
+			},
+
 			expectedNilObj: false,
 			expectedErr:    nil,
 		},
@@ -72,7 +144,7 @@ func TestTelegramNotifier_New(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			n, err := NewTelegramNotifier(test.bot(), test.factory(), test.metrics())
+			n, err := NewTelegramNotifier(test.bot(), test.metrics(), test.apiPBClient(), test.aggregatorClient())
 			assert.Equal(t, test.expectedErr, err)
 
 			if test.expectedNilObj {
