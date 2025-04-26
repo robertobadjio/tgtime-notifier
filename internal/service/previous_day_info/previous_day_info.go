@@ -3,11 +3,12 @@ package previous_day_info
 import (
 	"context"
 	"fmt"
-	"github.com/jonboulle/clockwork"
-	pb "github.com/robertobadjio/tgtime-aggregator/pkg/api/time_v1"
-	pbapiv1 "github.com/robertobadjio/tgtime-api/api/v1/pb/api"
 	"time"
 
+	"github.com/jonboulle/clockwork"
+
+	pb "github.com/robertobadjio/tgtime-aggregator/pkg/api/time_v1"
+	pbapiv1 "github.com/robertobadjio/tgtime-api/api/v1/pb/api"
 	"github.com/robertobadjio/tgtime-notifier/internal/helper"
 	"github.com/robertobadjio/tgtime-notifier/internal/logger"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
@@ -24,6 +25,7 @@ type aggregatorClient interface {
 	) (*pb.GetSummaryResponse, error)
 }
 
+// APIClient ...
 type APIClient interface {
 	GetUserByMacAddress(
 		ctx context.Context,

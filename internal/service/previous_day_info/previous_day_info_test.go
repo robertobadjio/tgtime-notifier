@@ -61,7 +61,7 @@ func TestCancelContext(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, previousDayInfoService)
 
-		handler := func(ctx2 context.Context) error {
+		handler := func(_ context.Context) error {
 			return nil
 		}
 

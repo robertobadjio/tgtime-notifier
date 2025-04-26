@@ -11,6 +11,7 @@ const (
 
 const defaultHour int = 12
 
+// PreviousDayInfoConfig ...
 type PreviousDayInfoConfig struct {
 	hour int
 }
@@ -38,6 +39,7 @@ func NewPreviousDayInfoConfig(os OS) (*PreviousDayInfoConfig, error) {
 	}, nil
 }
 
+// Hour ...
 func (pdi PreviousDayInfoConfig) Hour() int {
 	return pdi.hour
 }

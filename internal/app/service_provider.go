@@ -2,10 +2,10 @@ package app
 
 import (
 	"context"
-	"github.com/jonboulle/clockwork"
 	"net/http"
 
 	TGBotAPI "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/jonboulle/clockwork"
 
 	"github.com/robertobadjio/tgtime-notifier/internal/api"
 	"github.com/robertobadjio/tgtime-notifier/internal/api/service/endpoints"
