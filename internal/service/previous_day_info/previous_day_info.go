@@ -3,48 +3,122 @@ package previous_day_info
 import (
 	"context"
 	"fmt"
+	"github.com/jonboulle/clockwork"
+	pb "github.com/robertobadjio/tgtime-aggregator/pkg/api/time_v1"
+	pbapiv1 "github.com/robertobadjio/tgtime-api/api/v1/pb/api"
 	"time"
 
 	"github.com/robertobadjio/tgtime-notifier/internal/helper"
-	"github.com/robertobadjio/tgtime-notifier/internal/service/client/aggregator"
-	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
+	"github.com/robertobadjio/tgtime-notifier/internal/logger"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
 )
-
-// PreviousDayInfo ...
-type PreviousDayInfo interface {
-	Run(ctx context.Context) error
-}
 
 type notifier interface {
 	SendPreviousDayInfoMessage(ctx context.Context, params telegram.ParamsPreviousDayInfo) error
 }
 
-type previousDayInfo struct {
-	tgTimeAPIClient        api_pb.Client
-	tgTimeAggregatorClient aggregator.Client
-	notifier               notifier
+type aggregatorClient interface {
+	GetTimeSummary(
+		ctx context.Context,
+		macAddress, date string,
+	) (*pb.GetSummaryResponse, error)
 }
 
-// NewPreviousDayInfo ???
+type APIClient interface {
+	GetUserByMacAddress(
+		ctx context.Context,
+		macAddress string,
+	) (*pbapiv1.GetUserByMacAddressResponse, error)
+}
+
+// PreviousDayInfo ...
+type PreviousDayInfo struct {
+	APIClient              APIClient
+	tgTimeAggregatorClient aggregatorClient
+	notifier               notifier
+	clock                  *clockwork.Clock
+	hour, minute, second   int
+}
+
+// NewPreviousDayInfo ...
 func NewPreviousDayInfo(
-	tgTimeAPIClient api_pb.Client,
-	tgTimeAggregatorClient aggregator.Client,
+	tgTimeAPIClient APIClient,
+	aggregatorClient aggregatorClient,
 	notifier notifier,
-) PreviousDayInfo {
-	return &previousDayInfo{
-		tgTimeAPIClient:        tgTimeAPIClient,
-		tgTimeAggregatorClient: tgTimeAggregatorClient,
+	c clockwork.Clock,
+	hour, minute, second int,
+) (*PreviousDayInfo, error) {
+	if nil == tgTimeAPIClient {
+		return nil, fmt.Errorf("APIClient must be set")
+	}
+
+	if nil == aggregatorClient {
+		return nil, fmt.Errorf("aggregatorClient must be set")
+	}
+
+	if nil == notifier {
+		return nil, fmt.Errorf("notifier must be set")
+	}
+
+	return &PreviousDayInfo{
+		APIClient:              tgTimeAPIClient,
+		tgTimeAggregatorClient: aggregatorClient,
 		notifier:               notifier,
+		clock:                  &c,
+		hour:                   hour,
+		minute:                 minute,
+		second:                 second,
+	}, nil
+}
+
+// Start ...
+func (pdi *PreviousDayInfo) Start(ctx context.Context) error {
+	go func() {
+		err := pdi.everyDayByHour(ctx, pdi.sendAllUsersNotify, time.NewTicker(time.Minute))
+		if err != nil {
+			logger.Error("component", "previous_day_info", "during", "send notify", "error", err)
+		}
+	}()
+
+	return nil
+}
+
+func (pdi *PreviousDayInfo) everyDayByHour(
+	ctx context.Context,
+	handler func(ctx context.Context) error,
+	ticker *time.Ticker,
+) error {
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		select {
+		case <-ticker.C:
+			cc := *pdi.clock
+			h, m, s := cc.Now().Clock()
+			if h == pdi.hour && m == pdi.minute && s == pdi.second {
+				err := handler(ctx)
+				if err != nil {
+					logger.Error("error send all users notify", "err", err.Error())
+				}
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 }
 
 // Run ...
-func (pdi *previousDayInfo) Run(ctx context.Context) error {
+func (pdi *PreviousDayInfo) sendAllUsersNotify(ctx context.Context) error {
 	timeSummaryResponse, err := pdi.tgTimeAggregatorClient.GetTimeSummary(
 		ctx,
 		"",
-		getPreviousDate("Europe/Moscow").Format(time.DateOnly),
+		pdi.getPreviousDate("Europe/Moscow").Format(time.DateOnly),
 	)
 	if err != nil {
 		return fmt.Errorf("error getting time summary: %w", err)
@@ -54,7 +128,7 @@ func (pdi *previousDayInfo) Run(ctx context.Context) error {
 	}
 
 	for _, summaryByUser := range timeSummaryResponse.Summary {
-		user, errGetUserByMACAddress := pdi.tgTimeAPIClient.GetUserByMacAddress(ctx, summaryByUser.MacAddress)
+		user, errGetUserByMACAddress := pdi.APIClient.GetUserByMacAddress(ctx, summaryByUser.MacAddress)
 		if errGetUserByMACAddress != nil {
 			// TODO: log error
 			continue
@@ -82,7 +156,7 @@ func (pdi *previousDayInfo) Run(ctx context.Context) error {
 	return nil
 }
 
-func getPreviousDate(location string) time.Time {
+func (pdi *PreviousDayInfo) getPreviousDate(location string) time.Time {
 	moscowLocation, _ := time.LoadLocation(location)
 	return time.Now().AddDate(0, 0, -1).In(moscowLocation)
 }

@@ -3,12 +3,14 @@ module github.com/robertobadjio/tgtime-notifier
 go 1.24.2
 
 require (
+	github.com/benbjohnson/clock v1.3.5
 	github.com/go-kit/kit v0.13.0
 	github.com/go-kit/log v0.2.1
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
 	github.com/gojuno/minimock/v3 v3.4.5
 	github.com/gorilla/mux v1.8.1
 	github.com/grafana/pyroscope-go v1.2.1
+	github.com/jonboulle/clockwork v0.5.0
 	github.com/oklog/oklog v0.3.2
 	github.com/prometheus/client_golang v1.11.1
 	github.com/robertobadjio/tgtime-aggregator v0.0.1

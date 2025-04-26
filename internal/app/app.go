@@ -139,36 +139,7 @@ func (a *App) initCheckPreviousDayInfo(ctx context.Context) error {
 
 	a.gGroup.Add(
 		func() error {
-			for {
-				select {
-				case <-ticker.C:
-					h, m, _ := time.Now().Clock()
-					if h == 12 && m == 0 {
-						err := a.serviceProvider.PreviousDayInfo().Run(ctx)
-						if err != nil {
-							logger.Error("telegram", "updates", "type", "previous day info", "msg", err.Error())
-						}
-					}
-				case <-ctx.Done():
-					return fmt.Errorf("context canceled: %s", ctx.Err())
-				}
-			}
-			/*t := time.Now()
-			n := time.Date(t.Year(), t.Month(), t.Day(), 12, 0, 0, 0, t.Location())
-			d := n.Sub(t)
-			if d < 0 {
-				n = n.Add(24 * time.Hour)
-				d = n.Sub(t)
-			}
-			for {
-				time.Sleep(d)
-				d = 24 * time.Hour
-
-				err := a.serviceProvider.PreviousDayInfo().Run(ctx)
-				if err != nil {
-					logger.Error("telegram", "updates", "type", "previous day info", "msg", err.Error())
-				}
-			}*/
+			return a.serviceProvider.PreviousDayInfo().Start(ctx)
 		}, func(err error) {
 			logger.Error("component", "previous day info", "err", err.Error())
 			ticker.Stop()
@@ -282,7 +253,7 @@ func (a *App) initPrometheus(_ context.Context) error {
 	return nil
 }
 
-// Run ???
+// Run ...
 func (a *App) Run() error {
 	return a.gGroup.Run()
 }

@@ -77,6 +77,10 @@ minimock-gen: ## Generate mocks
 	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/notifier/telegram.botAPI -o ./internal/service/notifier/telegram/bot_api_mock.go
 	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/notifier/telegram.aggregatorClient -o ./internal/service/notifier/telegram/aggregator_client_mock.go
 	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/notifier/telegram.apiPBClient -o ./internal/service/notifier/telegram/api_pb_client_mock.go
+	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/previous_day_info.notifier -o ./internal/service/previous_day_info/notifier_mock.go
+	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/previous_day_info.aggregatorClient -o ./internal/service/previous_day_info/aggregator_client_mock.go
+	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/previous_day_info.APIClient -o ./internal/service/previous_day_info/api_client_mock.go
+	$(BIN_DIR)/$(MINIMOCK_COMMAND) -i ./internal/service/previous_day_info.previousDayInfo -o ./internal/service/previous_day_info/previous_day_info_mock.go
 
 test-unit: ## Run unit tests
 	$(GO_TEST_COMMAND) \

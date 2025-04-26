@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/jonboulle/clockwork"
 	"net/http"
 
 	TGBotAPI "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -39,7 +40,8 @@ type serviceProvider struct {
 	tgTimeAggregatorConfig config.TgTimeAggregatorConfig
 	tgTimeAggregatorClient aggregator.Client
 
-	previousDayInfo previous_day_info.PreviousDayInfo
+	previousDayInfo       *previous_day_info.PreviousDayInfo
+	previousDayInfoConfig *config.PreviousDayInfoConfig
 
 	promConfig      config.PromConfig
 	pyroscopeConfig config.PyroscopeConfig
@@ -268,14 +270,37 @@ func (sp *serviceProvider) TGTimeAggregatorClient() aggregator.Client {
 }
 
 // PreviousDayInfo ...
-func (sp *serviceProvider) PreviousDayInfo() previous_day_info.PreviousDayInfo {
+func (sp *serviceProvider) PreviousDayInfo() *previous_day_info.PreviousDayInfo {
 	if sp.previousDayInfo == nil {
-		sp.previousDayInfo = previous_day_info.NewPreviousDayInfo(
+		pdi, err := previous_day_info.NewPreviousDayInfo(
 			sp.TGTimeAPIClient(),
 			sp.TGTimeAggregatorClient(),
 			sp.TGNotifier(),
+			clockwork.NewRealClock(),
+			sp.PreviousDayInfoConfig().Hour(),
+			0,
+			0,
 		)
+		if err != nil {
+			logger.Fatal("di", "previous day info service", "error", err.Error())
+		}
+
+		sp.previousDayInfo = pdi
 	}
 
 	return sp.previousDayInfo
+}
+
+// PreviousDayInfoConfig ...
+func (sp *serviceProvider) PreviousDayInfoConfig() *config.PreviousDayInfoConfig {
+	if sp.previousDayInfoConfig == nil {
+		pdic, err := config.NewPreviousDayInfoConfig(sp.OS())
+		if err != nil {
+			logger.Fatal("di", "previous day info config", "error", err.Error())
+		}
+
+		sp.previousDayInfoConfig = pdic
+	}
+
+	return sp.previousDayInfoConfig
 }
