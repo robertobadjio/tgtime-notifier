@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/robertobadjio/tgtime-notifier/internal/helper"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/helper"
 )
 
 // SendCommandMessage Метод для отправки сообщения в ответ на команду пользователя.

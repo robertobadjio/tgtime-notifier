@@ -2,11 +2,11 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewPromConfig(t *testing.T) {
@@ -30,6 +30,8 @@ func TestNewPromConfig(t *testing.T) {
 		"create config with port": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
+				require.NotNil(t, osMock)
+
 				osMock.GetenvMock.Expect(promAppPortEnvName).Times(1).Return("2112")
 
 				return osMock
@@ -40,12 +42,14 @@ func TestNewPromConfig(t *testing.T) {
 		"create config with empty port": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
+				require.NotNil(t, osMock)
+
 				osMock.GetenvMock.Expect(promAppPortEnvName).Times(1).Return("")
 
 				return osMock
 			},
-			expectedNilObj: true,
-			expectedErr:    fmt.Errorf("environment variable %s not set", promAppPortEnvName),
+			expectedNilObj: false,
+			expectedErr:    nil,
 		},
 	}
 

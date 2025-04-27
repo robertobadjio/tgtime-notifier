@@ -9,17 +9,13 @@ const (
 	kafkaHostEnvName = "KAFKA_BROKER_"
 )
 
-// KafkaConfig Конфиг для подключения к Kafka
-type KafkaConfig interface {
-	GetAddresses() []string
-}
-
-type kafkaConfig struct {
+// KafkaConfig Конфиг для подключения к Kafka.
+type KafkaConfig struct {
 	addresses []string
 }
 
-// NewKafkaConfig Конструктор конфига для подключения к Kafka
-func NewKafkaConfig(os OS) (KafkaConfig, error) {
+// NewKafkaConfig Конструктор конфига для подключения к Kafka.
+func NewKafkaConfig(os OS) (*KafkaConfig, error) {
 	if os == nil {
 		return nil, fmt.Errorf("os must not be nil")
 	}
@@ -37,12 +33,12 @@ func NewKafkaConfig(os OS) (KafkaConfig, error) {
 		i++
 	}
 
-	return &kafkaConfig{
+	return &KafkaConfig{
 		addresses: addresses,
 	}, nil
 }
 
 // GetAddresses ...
-func (cfg *kafkaConfig) GetAddresses() []string {
+func (cfg *KafkaConfig) GetAddresses() []string {
 	return cfg.addresses
 }

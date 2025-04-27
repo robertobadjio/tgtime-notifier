@@ -8,20 +8,18 @@ import (
 const pyroscopeHostEnvName = "PYROSCOPE_HOST"
 const pyroscopePortEnvName = "PYROSCOPE_PORT"
 
-// PyroscopeConfig ...
-type PyroscopeConfig interface {
-	Address() string
-	Enabled() bool
-}
+const applicationName string = "notify.app"
 
-type pyroscopeConfig struct {
-	host    string
-	port    string
-	enabled bool
+// PyroscopeConfig ...
+type PyroscopeConfig struct {
+	host            string
+	port            string
+	applicationName string
+	enabled         bool
 }
 
 // NewPyroscopeConfig ...
-func NewPyroscopeConfig(os OS) (PyroscopeConfig, error) {
+func NewPyroscopeConfig(os OS) (*PyroscopeConfig, error) {
 	if os == nil {
 		return nil, fmt.Errorf("os must not be nil")
 	}
@@ -42,19 +40,25 @@ func NewPyroscopeConfig(os OS) (PyroscopeConfig, error) {
 		}
 	}
 
-	return &pyroscopeConfig{
-		host:    host,
-		port:    port,
-		enabled: enabled,
+	return &PyroscopeConfig{
+		host:            host,
+		port:            port,
+		applicationName: applicationName,
+		enabled:         enabled,
 	}, nil
 }
 
 // Address ...
-func (c *pyroscopeConfig) Address() string {
+func (c *PyroscopeConfig) Address() string {
 	return net.JoinHostPort(c.host, c.port)
 }
 
 // Enabled ...
-func (c *pyroscopeConfig) Enabled() bool {
+func (c *PyroscopeConfig) Enabled() bool {
 	return c.enabled
+}
+
+// ApplicationName ...
+func (c *PyroscopeConfig) ApplicationName() string {
+	return c.applicationName
 }

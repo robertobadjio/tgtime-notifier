@@ -10,18 +10,14 @@ const (
 	tgTimeAPIPort = "TGTIME_API_PORT"
 )
 
-// TgTimeAPIConfig ???
-type TgTimeAPIConfig interface {
-	Address() string
-}
-
-type tgTimeAPIConfig struct {
+// TgTimeAPIConfig ...
+type TgTimeAPIConfig struct {
 	host string
 	port string
 }
 
 // NewTgTimeAPIConfig ???
-func NewTgTimeAPIConfig(os OS) (TgTimeAPIConfig, error) {
+func NewTgTimeAPIConfig(os OS) (*TgTimeAPIConfig, error) {
 	if os == nil {
 		return nil, fmt.Errorf("os must not be nil")
 	}
@@ -33,13 +29,13 @@ func NewTgTimeAPIConfig(os OS) (TgTimeAPIConfig, error) {
 		return nil, fmt.Errorf("environment variable %s must be set", tgTimeAPIPort)
 	}
 
-	return &tgTimeAPIConfig{
+	return &TgTimeAPIConfig{
 		host: host,
 		port: port,
 	}, nil
 }
 
 // Address ???
-func (tta *tgTimeAPIConfig) Address() string {
+func (tta *TgTimeAPIConfig) Address() string {
 	return net.JoinHostPort(tta.host, tta.port)
 }

@@ -18,13 +18,13 @@ import (
 	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
 )
 
-// App ???
+// App ...
 type App struct {
 	serviceProvider *serviceProvider
 	gGroup          group.Group
 }
 
-// NewApp ???
+// NewApp ...
 func NewApp(ctx context.Context) (*App, error) {
 	a := &App{
 		gGroup: group.Group{},
@@ -75,7 +75,7 @@ func (a *App) initPyroscope(_ context.Context) error {
 	}
 
 	_, err := pyroscope.Start(pyroscope.Config{
-		ApplicationName: "notify.app", // TODO: const
+		ApplicationName: a.serviceProvider.PyroscopeConfig().ApplicationName(),
 		ServerAddress:   "http://" + a.serviceProvider.PyroscopeConfig().Address(),
 		Logger:          pyroscope.StandardLogger,
 		ProfileTypes: []pyroscope.ProfileType{
@@ -219,9 +219,10 @@ func (a *App) initTGUpdateHandle(ctx context.Context) error {
 	return nil
 }
 
-// nolint
 func (a *App) initPrometheus(_ context.Context) error {
-	//_ = metric.NewMetrics()
+	if !a.serviceProvider.PromConfig().Enabled() {
+		return nil
+	}
 
 	httpListener, err := net.Listen("tcp", a.serviceProvider.PromConfig().Address())
 	if err != nil {

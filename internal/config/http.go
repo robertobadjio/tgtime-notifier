@@ -7,18 +7,14 @@ import (
 
 const httpPortEnvVar = "HTTP_PORT"
 
-// HTTPConfig ???
-type HTTPConfig interface {
-	Address() string
-}
-
-type httpConfig struct {
+// HTTPConfig ...
+type HTTPConfig struct {
 	host string
 	port string
 }
 
 // NewHTTPConfig ???
-func NewHTTPConfig(os OS) (HTTPConfig, error) {
+func NewHTTPConfig(os OS) (*HTTPConfig, error) {
 	if os == nil {
 		return nil, fmt.Errorf("os must not be nil")
 	}
@@ -28,9 +24,10 @@ func NewHTTPConfig(os OS) (HTTPConfig, error) {
 		return nil, fmt.Errorf("environment variable %s must be set", httpPortEnvVar)
 	}
 
-	return &httpConfig{host: "", port: port}, nil
+	return &HTTPConfig{host: "", port: port}, nil
 }
 
-func (h *httpConfig) Address() string {
+// Address ...
+func (h *HTTPConfig) Address() string {
 	return net.JoinHostPort(h.host, h.port)
 }

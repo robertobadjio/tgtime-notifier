@@ -28,13 +28,15 @@ func getMoscowLocation() *time.Location {
 
 // BuildBreaks ???
 func BuildBreaks(breaks []*time_v1.Break) []string {
+	const hourMinutesOnly string = "15:04"
+
 	var output []string
 	for _, item := range breaks {
 		beginTime := time.Unix(item.SecondsStart, 0)
 		endTime := time.Unix(item.SecondsEnd, 0)
 		output = append(
 			output,
-			fmt.Sprintf("%s - %s", beginTime.Format("15:04"), endTime.Format("15:04")))
+			fmt.Sprintf("%s - %s", beginTime.Format(hourMinutesOnly), endTime.Format(hourMinutesOnly)))
 	}
 
 	return output

@@ -11,40 +11,40 @@ import (
 	"github.com/robertobadjio/tgtime-notifier/internal/api/service/endpoints"
 	"github.com/robertobadjio/tgtime-notifier/internal/api/service/transport"
 	"github.com/robertobadjio/tgtime-notifier/internal/config"
-	"github.com/robertobadjio/tgtime-notifier/internal/kafka"
 	"github.com/robertobadjio/tgtime-notifier/internal/logger"
 	"github.com/robertobadjio/tgtime-notifier/internal/metric"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/client/aggregator"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/kafka"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/previous_day_info"
 )
 
 type serviceProvider struct {
-	httpConfig config.HTTPConfig
+	httpConfig *config.HTTPConfig
 
 	httpServiceHandler  http.Handler
 	endpointsServiceSet endpoints.Set
 	service             api.Service
 
-	tgConfig   config.TelegramBotConfig
+	tgConfig   *config.TelegramBotConfig
 	tgBot      *TGBotAPI.BotAPI
 	tgNotifier *telegram.TGNotifier
 
-	kafkaConfig config.KafkaConfig
+	kafkaConfig *config.KafkaConfig
 	kafka       *kafka.Kafka
 
-	tgTimeAPIConfig config.TgTimeAPIConfig
-	tgTimeAPIClient api_pb.Client
+	tgTimeAPIConfig *config.TgTimeAPIConfig
+	tgTimeAPIClient *api_pb.Client
 
-	tgTimeAggregatorConfig config.TgTimeAggregatorConfig
-	tgTimeAggregatorClient aggregator.Client
+	tgTimeAggregatorConfig *config.TgTimeAggregatorConfig
+	tgTimeAggregatorClient *aggregator.Client
 
 	previousDayInfo       *previous_day_info.PreviousDayInfo
 	previousDayInfoConfig *config.PreviousDayInfoConfig
 
-	promConfig      config.PromConfig
-	pyroscopeConfig config.PyroscopeConfig
+	promConfig      *config.PromConfig
+	pyroscopeConfig *config.PyroscopeConfig
 	metrics         *metric.Metrics
 
 	os config.OS
@@ -89,7 +89,7 @@ func (sp *serviceProvider) APIService(_ context.Context) api.Service {
 }
 
 // HTTPConfig ...
-func (sp *serviceProvider) HTTPConfig() config.HTTPConfig {
+func (sp *serviceProvider) HTTPConfig() *config.HTTPConfig {
 	if sp.httpConfig == nil {
 		httpConfig, err := config.NewHTTPConfig(sp.OS())
 		if err != nil {
@@ -103,7 +103,7 @@ func (sp *serviceProvider) HTTPConfig() config.HTTPConfig {
 }
 
 // PromConfig ...
-func (sp *serviceProvider) PromConfig() config.PromConfig {
+func (sp *serviceProvider) PromConfig() *config.PromConfig {
 	if sp.promConfig == nil {
 		promConfig, err := config.NewPromConfig(sp.OS())
 		if err != nil {
@@ -126,7 +126,7 @@ func (sp *serviceProvider) Metrics() *metric.Metrics {
 }
 
 // PyroscopeConfig ...
-func (sp *serviceProvider) PyroscopeConfig() config.PyroscopeConfig {
+func (sp *serviceProvider) PyroscopeConfig() *config.PyroscopeConfig {
 	if sp.pyroscopeConfig == nil {
 		pyroscopeConfig, err := config.NewPyroscopeConfig(sp.OS())
 		if err != nil {
@@ -140,7 +140,7 @@ func (sp *serviceProvider) PyroscopeConfig() config.PyroscopeConfig {
 }
 
 // KafkaConfig ...
-func (sp *serviceProvider) KafkaConfig() config.KafkaConfig {
+func (sp *serviceProvider) KafkaConfig() *config.KafkaConfig {
 	if sp.kafkaConfig == nil {
 		kc, err := config.NewKafkaConfig(sp.OS())
 		if err != nil {
@@ -154,7 +154,7 @@ func (sp *serviceProvider) KafkaConfig() config.KafkaConfig {
 }
 
 // TelegramConfig ...
-func (sp *serviceProvider) TelegramConfig() config.TelegramBotConfig {
+func (sp *serviceProvider) TelegramConfig() *config.TelegramBotConfig {
 	if sp.tgConfig == nil {
 		tgConfig, err := config.NewTelegramBotConfig(sp.OS())
 		if err != nil {
@@ -217,14 +217,14 @@ func (sp *serviceProvider) TgBot() *TGBotAPI.BotAPI {
 // Kafka ...
 func (sp *serviceProvider) Kafka() *kafka.Kafka {
 	if sp.kafka == nil {
-		sp.kafka = kafka.NewKafka(sp.KafkaConfig(), sp.TGNotifier(), sp.TGTimeAPIClient())
+		sp.kafka = kafka.NewKafka(sp.KafkaConfig().GetAddresses(), sp.TGNotifier(), sp.TGTimeAPIClient())
 	}
 
 	return sp.kafka
 }
 
 // TGTimeAPIConfig ...
-func (sp *serviceProvider) TGTimeAPIConfig() config.TgTimeAPIConfig {
+func (sp *serviceProvider) TGTimeAPIConfig() *config.TgTimeAPIConfig {
 	if sp.tgTimeAPIConfig == nil {
 		c, err := config.NewTgTimeAPIConfig(sp.OS())
 		if err != nil {
@@ -238,7 +238,7 @@ func (sp *serviceProvider) TGTimeAPIConfig() config.TgTimeAPIConfig {
 }
 
 // TGTimeAPIClient ...
-func (sp *serviceProvider) TGTimeAPIClient() api_pb.Client {
+func (sp *serviceProvider) TGTimeAPIClient() *api_pb.Client {
 	if sp.tgTimeAPIClient == nil {
 		sp.tgTimeAPIClient = api_pb.NewClient(sp.TGTimeAPIConfig())
 	}
@@ -247,7 +247,7 @@ func (sp *serviceProvider) TGTimeAPIClient() api_pb.Client {
 }
 
 // TGTimeAggregatorConfig ...
-func (sp *serviceProvider) TGTimeAggregatorConfig() config.TgTimeAPIConfig {
+func (sp *serviceProvider) TGTimeAggregatorConfig() *config.TgTimeAggregatorConfig {
 	if sp.tgTimeAggregatorConfig == nil {
 		c, err := config.NewTgTimeAggregatorConfig(sp.OS())
 		if err != nil {
@@ -261,7 +261,7 @@ func (sp *serviceProvider) TGTimeAggregatorConfig() config.TgTimeAPIConfig {
 }
 
 // TGTimeAggregatorClient ...
-func (sp *serviceProvider) TGTimeAggregatorClient() aggregator.Client {
+func (sp *serviceProvider) TGTimeAggregatorClient() *aggregator.Client {
 	if sp.tgTimeAggregatorClient == nil {
 		sp.tgTimeAggregatorClient = aggregator.NewClient(sp.TGTimeAggregatorConfig())
 	}

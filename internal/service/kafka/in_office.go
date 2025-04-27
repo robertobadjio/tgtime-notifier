@@ -16,16 +16,27 @@ const inOfficeTopic = "in-office"
 
 const partition = 0
 
-// ConsumeInOffice Чтение сообщений из кафки о приходе сотрудника в офис / на работу
+// ConsumeInOffice Чтение сообщений из кафки о приходе сотрудника в офис / на работу.
 func (k *Kafka) ConsumeInOffice(ctx context.Context) error {
 	r := k.buildReader(inOfficeTopic)
 	defer func() {
 		if err := r.Close(); err != nil {
-			logger.Log("failed to close reader:", err)
+			logger.Warn(
+				"component", "kafka",
+				"during", "consume in office",
+				"desc", "failed to close reader",
+				"error", err.Error(),
+			)
 		}
 	}()
 
 	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("exit from consumer in office: %w", ctx.Err())
+		default:
+		}
+
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("exit from consumer in office: %w", ctx.Err())
@@ -40,7 +51,13 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context) error {
 			}
 			userResponse, err := k.tgTimeAPIClient.GetUserByMacAddress(ctx, string(m.Value))
 			if err != nil {
-				logger.Log("kafka", "read", "topic", inOfficeTopic, "error", err.Error(), "desc", "error getting user by mac address "+string(m.Value))
+				logger.Log(
+					"component", "kafka",
+					"during", "read",
+					"topic", inOfficeTopic,
+					"desc", "error getting user by mac address "+string(m.Value),
+					"error", err.Error(),
+				)
 				continue
 			}
 
@@ -49,7 +66,13 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context) error {
 				telegram.ParamsWelcomeMessage{TelegramID: userResponse.User.TelegramId},
 			)
 			if err != nil {
-				logger.Log("kafka", "read", "topic", inOfficeTopic, "error", err.Error())
+				logger.Log(
+					"component", "kafka",
+					"during", "read",
+					"topic", inOfficeTopic,
+					"desc", "error sending welcome message",
+					"error", err.Error(),
+				)
 			}
 		}
 	}
@@ -57,7 +80,7 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context) error {
 
 func (k *Kafka) buildReader(topicName string) *kafkaLib.Reader {
 	return kafkaLib.NewReader(kafkaLib.ReaderConfig{
-		Brokers:   k.config.GetAddresses(),
+		Brokers:   k.brokers,
 		Topic:     topicName,
 		Partition: partition,
 		GroupID:   "",

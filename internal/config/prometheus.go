@@ -6,43 +6,47 @@ import (
 )
 
 const promAppPortEnvName = "PROMETHEUS_APP_PORT"
+const endpointPath = "/metrics"
 
 // PromConfig ...
-type PromConfig interface {
-	Address() string
-	Path() string
-}
-
-type promConfig struct {
-	host string
-	port string
-	path string
+type PromConfig struct {
+	host    string
+	port    string
+	path    string
+	enabled bool
 }
 
 // NewPromConfig ...
-func NewPromConfig(os OS) (PromConfig, error) {
+func NewPromConfig(os OS) (*PromConfig, error) {
 	if os == nil {
 		return nil, fmt.Errorf("os must not be nil")
 	}
 
 	port := os.Getenv(promAppPortEnvName)
+	enabled := true
 	if len(port) == 0 {
-		return nil, fmt.Errorf("environment variable %s not set", promAppPortEnvName)
+		enabled = false
 	}
 
-	return &promConfig{
-		host: "",
-		port: port,
-		path: "/metrics",
+	return &PromConfig{
+		host:    "",
+		port:    port,
+		path:    endpointPath,
+		enabled: enabled,
 	}, nil
 }
 
 // Address ...
-func (c *promConfig) Address() string {
+func (c *PromConfig) Address() string {
 	return net.JoinHostPort(c.host, c.port)
 }
 
 // Path ...
-func (c *promConfig) Path() string {
+func (c *PromConfig) Path() string {
 	return c.path
+}
+
+// Enabled ...
+func (c *PromConfig) Enabled() bool {
+	return c.enabled
 }

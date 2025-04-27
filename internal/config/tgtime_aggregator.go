@@ -10,18 +10,14 @@ const (
 	tgTimeAggregatorPort = "TGTIME_AGGREGATOR_PORT"
 )
 
-// TgTimeAggregatorConfig ???
-type TgTimeAggregatorConfig interface {
-	Address() string
-}
-
-type tgTimeAggregatorConfig struct {
+// TgTimeAggregatorConfig ...
+type TgTimeAggregatorConfig struct {
 	host string
 	port string
 }
 
 // NewTgTimeAggregatorConfig ???
-func NewTgTimeAggregatorConfig(os OS) (TgTimeAggregatorConfig, error) {
+func NewTgTimeAggregatorConfig(os OS) (*TgTimeAggregatorConfig, error) {
 	if os == nil {
 		return nil, fmt.Errorf("os must not be nil")
 	}
@@ -33,13 +29,13 @@ func NewTgTimeAggregatorConfig(os OS) (TgTimeAggregatorConfig, error) {
 		return nil, fmt.Errorf("environment variable %s must be set", tgTimeAggregatorPort)
 	}
 
-	return &tgTimeAggregatorConfig{
+	return &TgTimeAggregatorConfig{
 		host: host,
 		port: port,
 	}, nil
 }
 
-// Address ???
-func (tta *tgTimeAggregatorConfig) Address() string {
+// Address ...
+func (tta *TgTimeAggregatorConfig) Address() string {
 	return net.JoinHostPort(tta.host, tta.port)
 }

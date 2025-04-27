@@ -9,8 +9,8 @@ import (
 
 	pb "github.com/robertobadjio/tgtime-aggregator/pkg/api/time_v1"
 	pbapiv1 "github.com/robertobadjio/tgtime-api/api/v1/pb/api"
-	"github.com/robertobadjio/tgtime-notifier/internal/helper"
 	"github.com/robertobadjio/tgtime-notifier/internal/logger"
+	"github.com/robertobadjio/tgtime-notifier/internal/service/helper"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
 )
 
@@ -50,8 +50,20 @@ func NewPreviousDayInfo(
 	c clockwork.Clock,
 	hour, minute, second int,
 ) (*PreviousDayInfo, error) {
+	if nil == tgTimeAPIClient {
+		return nil, fmt.Errorf("APIClient must be set")
+	}
+
+	if nil == aggregatorClient {
+		return nil, fmt.Errorf("aggregatorClient must be set")
+	}
+
+	if nil == notifier {
+		return nil, fmt.Errorf("notifier must be set")
+	}
+
 	if c == nil {
-		return nil, fmt.Errorf("click must be set")
+		return nil, fmt.Errorf("clock must be set")
 	}
 
 	if hour < 0 || hour > 23 {
@@ -64,18 +76,6 @@ func NewPreviousDayInfo(
 
 	if second < 0 || second > 59 {
 		return nil, fmt.Errorf("second must be between 0 and 59")
-	}
-
-	if nil == tgTimeAPIClient {
-		return nil, fmt.Errorf("APIClient must be set")
-	}
-
-	if nil == aggregatorClient {
-		return nil, fmt.Errorf("aggregatorClient must be set")
-	}
-
-	if nil == notifier {
-		return nil, fmt.Errorf("notifier must be set")
 	}
 
 	return &PreviousDayInfo{
@@ -121,7 +121,7 @@ func (pdi *PreviousDayInfo) everyDayByHour(
 			cc := pdi.clock
 			h, m, s := cc.Now().Clock()
 			if h == pdi.hour && m == pdi.minute && s == pdi.second {
-				err := handler(ctx, pdi.getPreviousDate("Europe/Moscow").Format(time.DateOnly))
+				err := handler(ctx, pdi.getPreviousDate(time.Now()).Format(time.DateOnly))
 				if err != nil {
 					logger.Error(
 						"component", "previous_day_info",
@@ -136,7 +136,6 @@ func (pdi *PreviousDayInfo) everyDayByHour(
 	}
 }
 
-// Run ...
 func (pdi *PreviousDayInfo) sendAllUsersNotify(ctx context.Context, date string) error {
 	timeSummaryResponse, err := pdi.tgTimeAggregatorClient.GetTimeSummary(ctx, "", date)
 	if err != nil {
@@ -179,7 +178,7 @@ func (pdi *PreviousDayInfo) sendAllUsersNotify(ctx context.Context, date string)
 	return nil
 }
 
-func (pdi *PreviousDayInfo) getPreviousDate(location string) time.Time {
-	moscowLocation, _ := time.LoadLocation(location)
-	return time.Now().AddDate(0, 0, -1).In(moscowLocation)
+func (pdi *PreviousDayInfo) getPreviousDate(currentTime time.Time) time.Time {
+	moscowLocation, _ := time.LoadLocation("Europe/Moscow")
+	return currentTime.AddDate(0, 0, -1).In(moscowLocation)
 }
