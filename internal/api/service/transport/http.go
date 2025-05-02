@@ -20,7 +20,7 @@ type errorer interface {
 type HandlerWithError func(w http.ResponseWriter, r *http.Request) error
 
 // NewHTTPHandler ...
-func NewHTTPHandler(ep endpoints.Set) http.Handler {
+func NewHTTPHandler(ep endpoints.Set) *mux.Router {
 	router := mux.NewRouter()
 
 	opt := []httpTransport.ServerOption{

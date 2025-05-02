@@ -15,7 +15,7 @@ type Set struct {
 }
 
 // NewEndpointSet ...
-func NewEndpointSet(s api.Service) Set {
+func NewEndpointSet(s *api.NotifierService) Set {
 	return Set{
 		LivenessEndpoint:  MakeLivenessEndpoint(s),
 		ReadinessEndpoint: MakeReadinessEndpoint(s),
@@ -23,10 +23,10 @@ func NewEndpointSet(s api.Service) Set {
 }
 
 // MakeLivenessEndpoint ...
-func MakeLivenessEndpoint(svc api.Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
+func MakeLivenessEndpoint(svc *api.NotifierService) endpoint.Endpoint {
+	return func(_ context.Context, request interface{}) (interface{}, error) {
 		_ = request.(LivenessRequest)
-		code, err := svc.Liveness(ctx)
+		code, err := svc.Liveness()
 		if err != nil {
 			return LivenessResponse{Code: code, Err: err.Error()}, err
 		}
@@ -35,10 +35,10 @@ func MakeLivenessEndpoint(svc api.Service) endpoint.Endpoint {
 }
 
 // MakeReadinessEndpoint ...
-func MakeReadinessEndpoint(svc api.Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
+func MakeReadinessEndpoint(svc *api.NotifierService) endpoint.Endpoint {
+	return func(_ context.Context, request interface{}) (interface{}, error) {
 		_ = request.(ReadinessRequest)
-		code, err := svc.Readiness(ctx)
+		code, err := svc.Readiness()
 		if err != nil {
 			return ReadinessResponse{Code: code, Err: err.Error()}, err
 		}

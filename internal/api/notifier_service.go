@@ -1,9 +1,10 @@
 package api
 
-type notifierService struct {
+// NotifierService ...
+type NotifierService struct {
 }
 
 // NewNotifierService ...
-func NewNotifierService() Service {
-	return &notifierService{}
+func NewNotifierService() *NotifierService {
+	return &NotifierService{}
 }

@@ -2,11 +2,11 @@ package app
 
 import (
 	"context"
-	"net/http"
 
-	TGBotAPI "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/gorilla/mux"
 	"github.com/jonboulle/clockwork"
 
+	TGBotAPI "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/robertobadjio/tgtime-notifier/internal/api"
 	"github.com/robertobadjio/tgtime-notifier/internal/api/service/endpoints"
 	"github.com/robertobadjio/tgtime-notifier/internal/api/service/transport"
@@ -23,9 +23,9 @@ import (
 type serviceProvider struct {
 	httpConfig *config.HTTPConfig
 
-	httpServiceHandler  http.Handler
+	httpServiceHandler  *mux.Router
 	endpointsServiceSet endpoints.Set
-	service             api.Service
+	service             *api.NotifierService
 
 	tgConfig   *config.TelegramBotConfig
 	tgBot      *TGBotAPI.BotAPI
@@ -55,7 +55,7 @@ func newServiceProvider() *serviceProvider {
 }
 
 // HTTPServiceHandler ...
-func (sp *serviceProvider) HTTPServiceHandler(ctx context.Context) http.Handler {
+func (sp *serviceProvider) HTTPServiceHandler(ctx context.Context) *mux.Router {
 	if sp.httpServiceHandler == nil {
 		sp.httpServiceHandler = transport.NewHTTPHandler(sp.EndpointsServiceSet(ctx))
 	}
@@ -80,7 +80,7 @@ func (sp *serviceProvider) OS() config.OS {
 }
 
 // APIService ...
-func (sp *serviceProvider) APIService(_ context.Context) api.Service {
+func (sp *serviceProvider) APIService(_ context.Context) *api.NotifierService {
 	if sp.service == nil {
 		sp.service = api.NewNotifierService()
 	}
