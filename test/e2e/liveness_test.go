@@ -20,7 +20,7 @@ func TestE2ELiveness(t *testing.T) {
 	cmd.Env = append(
 		os.Environ(),
 		"HTTP_PORT="+servicePort,
-		"BOT_TOKEN=153667468:AAHlSHlMqSt1f_uFmVRJbm5gntu2HI4WW8I",
+		"BOT_TOKEN=8132539422:AAHb_lH0dHEfmxcjS6RqfVOh3egX__t3lU4",
 		"WEBHOOK_PATH=telegram",
 		"WEBHOOK_LINK=https://tgtime.ru/telegram",
 		"TGTIME_AGGREGATOR_HOST=",
