@@ -70,6 +70,17 @@ func TestE2ESendWelcomeMessage(t *testing.T) {
 	})
 	require.NoError(t, errGenericContainer, "error starting API container")
 
+	ip, errHost := APIContainer.Host(ctx)
+	require.NoError(t, errHost, "error getting host IP")
+
+	mappedPort, errMappedPort := APIContainer.MappedPort(ctx, "4771")
+	require.NoError(t, errMappedPort, "error getting mapped port HTTP")
+
+	mappedPortGRPC, errMappedPortGRPC := APIContainer.MappedPort(ctx, "4770")
+	require.NoError(t, errMappedPortGRPC, "error getting mapped port gRPC")
+
+	APIContainerURL := fmt.Sprintf("%s:%s", ip, mappedPort.Port())
+
 	defer func() {
 		errTerminate := testcontainers.TerminateContainer(APIContainer)
 		require.NoError(t, errTerminate, "error terminating API container")
@@ -80,7 +91,7 @@ func TestE2ESendWelcomeMessage(t *testing.T) {
 	t.Log("API service state running:", stateAPIService.Running)
 
 	t.Log("Added stub user")
-	errAddStub := addStubRequestToMockedGrpcServer("127.0.0.1:"+TGTimAPIHTTPServicePort, currPath)
+	errAddStub := addStubRequestToMockedGrpcServer(APIContainerURL, currPath)
 	require.NoError(t, errAddStub, "error adding stub user")
 
 	kafkaContainer, err := kafka.Run(
@@ -118,9 +129,29 @@ func TestE2ESendWelcomeMessage(t *testing.T) {
 		"TGTIME_AGGREGATOR_HOST=",
 		"TGTIME_AGGREGATOR_PORT=1080",
 		"TGTIME_API_HOST=",
-		"TGTIME_API_PORT="+TGTimAPIGRPCServicePort,
+		"TGTIME_API_PORT="+mappedPortGRPC.Port(),
 	)
 	require.NoError(t, cmd.Start())
+
+	// output
+	/*stdout, err := cmd.StdoutPipe()
+	cmd.Stderr = cmd.Stdout
+	require.NoError(t, cmd.Start())
+
+	fmt.Println("produce in office message")
+	err = produceInOffice(ctx, macAddress, kafkaBrokers[0])
+	require.NoError(t, err)
+
+	go func() {
+		for {
+			tmp := make([]byte, 1024)
+			_, err = stdout.Read(tmp)
+			fmt.Print(string(tmp))
+			if err != nil {
+				break
+			}
+		}
+	}()*/
 
 	timeAssert := time.Now().Unix() - 1
 
