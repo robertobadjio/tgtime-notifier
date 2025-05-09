@@ -5,6 +5,6 @@ import (
 )
 
 // Liveness ...
-func (s *NotifierService) Liveness() (int, error) {
-	return http.StatusOK, nil
+func (s *NotifierService) Liveness() int {
+	return http.StatusOK
 }

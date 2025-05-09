@@ -1,0 +1,26 @@
+{
+  "service": "Api",
+  "method": "GetUserByMacAddress",
+  "input": {
+    "equals": {
+      "macAddress": "F0:98:9D:1C:93:F6"
+    }
+  },
+  "output": {
+    "data": {
+      "user": {
+        "id": 1,
+        "name": "Ivan",
+        "surname": "Petrov",
+        "lastname": "Vasilevich",
+        "birthDate": "2001-05-06",
+        "email": "ivan@mail.com",
+        "macAddress": "F0:98:9D:1C:93:F6",
+        "telegramId": -1002586394034,
+        "role": "admin",
+        "department": 1,
+        "position": "Manager"
+      }
+    }
+  }
+}

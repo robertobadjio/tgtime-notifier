@@ -19,11 +19,13 @@ func TestTelegramBotConfig_New(t *testing.T) {
 
 		expectedNilObj bool
 		expectedErr    error
+		expectedConfig *TelegramBotConfig
 	}{
 		"create config with empty OS": {
 			os: func() OS {
 				return nil
 			},
+
 			expectedNilObj: true,
 			expectedErr:    errors.New("os must not be nil"),
 		},
@@ -34,19 +36,32 @@ func TestTelegramBotConfig_New(t *testing.T) {
 
 				return osMock
 			},
+
 			expectedNilObj: true,
 			expectedErr:    fmt.Errorf("environment variable %s must be set", botTokenEnvParam),
+			expectedConfig: &TelegramBotConfig{
+				token:       "",
+				webhookPath: "",
+				webhookLink: "",
+			},
 		},
 		"create config with empty webhook path": {
 			os: func() OS {
 				osMock := NewOSMock(mc)
 				osMock.GetenvMock.When(botTokenEnvParam).Then("FHD3DO")
 				osMock.GetenvMock.When(webhookPathEnvParam).Then("")
+				osMock.GetenvMock.When(webhookLinkEnvParam).Then("")
 
 				return osMock
 			},
-			expectedNilObj: true,
-			expectedErr:    fmt.Errorf("environment variable %s must be set", webhookPathEnvParam),
+
+			expectedNilObj: false,
+			expectedErr:    nil,
+			expectedConfig: &TelegramBotConfig{
+				token:       "FHD3DO",
+				webhookPath: "",
+				webhookLink: "",
+			},
 		},
 		"create config with empty webhook link": {
 			os: func() OS {
@@ -57,8 +72,14 @@ func TestTelegramBotConfig_New(t *testing.T) {
 
 				return osMock
 			},
-			expectedNilObj: true,
-			expectedErr:    fmt.Errorf("environment variable %s must be set", webhookLinkEnvParam),
+
+			expectedNilObj: false,
+			expectedErr:    nil,
+			expectedConfig: &TelegramBotConfig{
+				token:       "2343434:sad7Dsad_DSADDk3k4",
+				webhookPath: "telegram",
+				webhookLink: "",
+			},
 		},
 		"create config": {
 			os: func() OS {
@@ -69,8 +90,14 @@ func TestTelegramBotConfig_New(t *testing.T) {
 
 				return osMock
 			},
+
 			expectedNilObj: false,
 			expectedErr:    nil,
+			expectedConfig: &TelegramBotConfig{
+				token:       "2343434:sad7Dsad_DSADDk3k4",
+				webhookPath: "telegram",
+				webhookLink: "https://example.ru/telegram",
+			},
 		},
 	}
 
@@ -85,6 +112,7 @@ func TestTelegramBotConfig_New(t *testing.T) {
 				assert.Nil(t, cfg)
 			} else {
 				assert.NotNil(t, cfg)
+				assert.Equal(t, test.expectedConfig, cfg)
 			}
 		})
 	}

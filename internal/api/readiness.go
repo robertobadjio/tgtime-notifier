@@ -5,6 +5,6 @@ import (
 )
 
 // Readiness ...
-func (s *NotifierService) Readiness() (int, error) {
-	return http.StatusOK, nil
+func (s *NotifierService) Readiness() int {
+	return http.StatusOK
 }

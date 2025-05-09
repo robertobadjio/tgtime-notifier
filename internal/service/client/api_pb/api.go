@@ -13,19 +13,15 @@ import (
 	pbapiv1 "github.com/robertobadjio/tgtime-api/api/v1/pb/api"
 )
 
-type tgTimeAPIConfig interface {
-	Address() string
-}
-
 // Client GRPC-клиент для получения пользователя из API-микросервиса.
 type Client struct {
-	cfg tgTimeAPIConfig
+	address string
 }
 
 // NewClient Конструктор GRPC-клиента для получения пользователя из API-микросервиса.
-func NewClient(cfg tgTimeAPIConfig) *Client {
+func NewClient(address string) *Client {
 	return &Client{
-		cfg: cfg,
+		address: address,
 	}
 }
 
@@ -35,7 +31,7 @@ func (tc *Client) GetUserByTelegramID(
 	telegramID int64,
 ) (*pbapiv1.GetUserByTelegramIdResponse, error) {
 	conn, _ := grpc.NewClient(
-		tc.cfg.Address(),
+		tc.address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 
@@ -65,7 +61,7 @@ func (tc *Client) GetUserByMacAddress(
 	macAddress string,
 ) (*pbapiv1.GetUserByMacAddressResponse, error) {
 	conn, _ := grpc.NewClient(
-		tc.cfg.Address(),
+		tc.address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	defer func() {

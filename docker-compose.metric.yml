@@ -1,0 +1,50 @@
+services:
+  app:
+    ports:
+      - "${HTTP_PORT}:${HTTP_PORT}"
+      - "${PROMETHEUS_APP_PORT}:${PROMETHEUS_APP_PORT}"
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.8.0
+    command: [ "--kafka.server=kafka:9092" ]
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - tgtime-notifier-network
+
+  prometheus:
+    image: prom/prometheus:v2.37.9
+    ports:
+      - "${PROMETHEUS_PORT}:9090" # UI
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alerts.yml:/etc/prometheus/alerts.yml
+      - prometheus_data:/prometheus
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - tgtime-notifier-network
+
+  grafana:
+    image: grafana/grafana-oss:10.0.3
+    ports:
+      - "${GRAFANA_PORT}:3000" # UI
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - tgtime-notifier-network
+    depends_on:
+      - prometheus
+
+  pyroscope:
+    image: grafana/pyroscope:main-28e1d6c
+    ports:
+      - "${PYROSCOPE_PORT}:${PYROSCOPE_PORT}"
+    networks:
+      - tgtime-notifier-network
+
+volumes:
+  prometheus_data:
+  grafana_data:

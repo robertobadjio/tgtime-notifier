@@ -12,12 +12,20 @@ const (
 // KafkaConfig Конфиг для подключения к Kafka.
 type KafkaConfig struct {
 	addresses []string
+	enabled   bool
 }
 
 // NewKafkaConfig Конструктор конфига для подключения к Kafka.
 func NewKafkaConfig(os OS) (*KafkaConfig, error) {
 	if os == nil {
 		return nil, fmt.Errorf("os must not be nil")
+	}
+
+	if firstHost := os.Getenv(kafkaHostEnvName + "1"); firstHost == "" {
+		return &KafkaConfig{
+			addresses: []string{},
+			enabled:   false,
+		}, nil
 	}
 
 	addresses := make([]string, 0)
@@ -35,10 +43,16 @@ func NewKafkaConfig(os OS) (*KafkaConfig, error) {
 
 	return &KafkaConfig{
 		addresses: addresses,
+		enabled:   true,
 	}, nil
 }
 
-// GetAddresses ...
-func (cfg *KafkaConfig) GetAddresses() []string {
+// Addresses ...
+func (cfg *KafkaConfig) Addresses() []string {
 	return cfg.addresses
+}
+
+// Enabled ...
+func (cfg *KafkaConfig) Enabled() bool {
+	return cfg.enabled
 }

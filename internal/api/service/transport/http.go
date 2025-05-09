@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"net/http/pprof"
 
 	httpTransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -41,21 +40,19 @@ func NewHTTPHandler(ep endpoints.Set) *mux.Router {
 		opt...,
 	))
 
-	router.Methods(http.MethodGet).Path("/debug/pprof/profile").HandlerFunc(pprof.Profile)
-	router.Methods(http.MethodGet).Path("/debug/pprof/trace").HandlerFunc(pprof.Trace)
-	router.Methods(http.MethodGet).Path("/debug/pprof/heap").Handler(pprof.Handler("heap"))
+	//router.Methods(http.MethodGet).Path("/debug/pprof/profile").HandlerFunc(pprof.Profile)
+	//router.Methods(http.MethodGet).Path("/debug/pprof/trace").HandlerFunc(pprof.Trace)
+	//router.Methods(http.MethodGet).Path("/debug/pprof/heap").Handler(pprof.Handler("heap"))
 
 	return router
 }
 
 func decodeHTTPLivenessRequest(_ context.Context, _ *http.Request) (interface{}, error) {
-	var req endpoints.LivenessRequest
-	return req, nil
+	return nil, nil
 }
 
 func decodeHTTPReadinessRequest(_ context.Context, _ *http.Request) (interface{}, error) {
-	var req endpoints.ReadinessRequest
-	return req, nil
+	return nil, nil
 }
 
 func encodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {

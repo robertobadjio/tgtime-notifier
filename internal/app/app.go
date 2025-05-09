@@ -45,7 +45,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initAPIGateway,
 		a.initTGUpdateHandle,
 		a.initCheckInOfficeConsumer,
-		a.initCheckPreviousDayInfo,
+		//a.initCheckPreviousDayInfo,
 		a.initPrometheus,
 		a.initPyroscope,
 	}
@@ -118,31 +118,31 @@ func (a *App) initAPIGateway(ctx context.Context) error {
 }
 
 func (a *App) initCheckInOfficeConsumer(ctx context.Context) error {
+	if !a.serviceProvider.KafkaConfig().Enabled() {
+		return nil
+	}
+
+	logger.Info("component", "CheckInOfficeConsumer", "during", "start consume in office")
+
 	ctxWithCancel, cancel := context.WithCancel(ctx)
 	a.gGroup.Add(
 		func() error {
-			err := a.serviceProvider.Kafka().ConsumeInOffice(ctxWithCancel)
-			if err != nil {
-				return fmt.Errorf("error on kafka consumer in office message %w", err)
-			}
-			return nil
+			return a.serviceProvider.Kafka().ConsumeInOffice(ctxWithCancel)
 		}, func(err error) {
-			logger.Error("transport", "GRPC", "component", "API", "during", "Listen", "err", err.Error())
+			logger.Error("component", "kafka", "during", "consume", "type", "in office", "err", err.Error())
 			cancel()
 		},
 	)
 	return nil
 }
 
+// nolint
 func (a *App) initCheckPreviousDayInfo(ctx context.Context) error {
-	ticker := time.NewTicker(1 * time.Minute)
-
 	a.gGroup.Add(
 		func() error {
 			return a.serviceProvider.PreviousDayInfo().Start(ctx)
 		}, func(err error) {
 			logger.Error("component", "previous day info", "err", err.Error())
-			ticker.Stop()
 		})
 
 	return nil
@@ -168,38 +168,19 @@ func (a *App) initCancelInterrupt(_ context.Context) error {
 }
 
 func (a *App) initTGUpdateHandle(ctx context.Context) error {
-	/*srv := &http.Server{
-		Addr:         a.serviceProvider.HTTPConfig().Address(),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+	if a.serviceProvider.TelegramConfig().WebhookPath() == "" {
+		return nil
 	}
 
-	a.gGroup.Add(
-		func() error {
-			logger.Log("transport", "HTTP", "addr", a.serviceProvider.HTTPConfig().Address())
-			err := srv.ListenAndServe()
-			if err != nil {
-				return fmt.Errorf("error starting server handle telegram updates %w", err)
-			}
-
-			return nil
-		}, func(err error) {
-			logger.Error("component", "server handle telegram updates", "err", err.Error())
-			_ = srv.Shutdown(ctx)
-		},
-	)*/
-
-	logger.Log("notifier", "telegram", "name", a.serviceProvider.TgBot().Self.UserName, "msg", "authorized on account")
-	logger.Log(
-		"notifier", "telegram",
-		"name", a.serviceProvider.TgBot().Self.UserName,
-		"msg", "setting webhook",
-		"url", a.serviceProvider.tgConfig.WebhookLink(),
+	logger.Info(
+		"component", "di",
+		"type", "telegram update handler",
+		"during", "init",
 	)
 
-	updates := a.serviceProvider.TgBot().ListenForWebhook("/" + a.serviceProvider.TelegramConfig().WebhookPath())
 	a.gGroup.Add(
 		func() error {
+			updates := a.serviceProvider.TgBot().ListenForWebhook("/" + a.serviceProvider.TelegramConfig().WebhookPath())
 			for update := range updates {
 				if update.Message == nil {
 					continue
@@ -212,7 +193,7 @@ func (a *App) initTGUpdateHandle(ctx context.Context) error {
 			}
 			return nil
 		}, func(err error) {
-			logger.Error("component", "tg bot updates", "err", err.Error())
+			logger.Error("component", "tg bot updates", "during", "handle update", "err", err.Error())
 			a.serviceProvider.TgBot().StopReceivingUpdates()
 		},
 	)

@@ -23,9 +23,8 @@ import (
 type serviceProvider struct {
 	httpConfig *config.HTTPConfig
 
-	httpServiceHandler  *mux.Router
-	endpointsServiceSet endpoints.Set
-	service             *api.NotifierService
+	httpServiceHandler *mux.Router
+	service            *api.NotifierService
 
 	tgConfig   *config.TelegramBotConfig
 	tgBot      *TGBotAPI.BotAPI
@@ -57,17 +56,10 @@ func newServiceProvider() *serviceProvider {
 // HTTPServiceHandler ...
 func (sp *serviceProvider) HTTPServiceHandler(ctx context.Context) *mux.Router {
 	if sp.httpServiceHandler == nil {
-		sp.httpServiceHandler = transport.NewHTTPHandler(sp.EndpointsServiceSet(ctx))
+		sp.httpServiceHandler = transport.NewHTTPHandler(endpoints.NewEndpointSet(sp.APIService(ctx)))
 	}
 
 	return sp.httpServiceHandler
-}
-
-// EndpointsServiceSet ...
-func (sp *serviceProvider) EndpointsServiceSet(ctx context.Context) endpoints.Set {
-	sp.endpointsServiceSet = endpoints.NewEndpointSet(sp.APIService(ctx))
-
-	return sp.endpointsServiceSet
 }
 
 // OS ...
@@ -156,12 +148,12 @@ func (sp *serviceProvider) KafkaConfig() *config.KafkaConfig {
 // TelegramConfig ...
 func (sp *serviceProvider) TelegramConfig() *config.TelegramBotConfig {
 	if sp.tgConfig == nil {
-		tgConfig, err := config.NewTelegramBotConfig(sp.OS())
+		cfg, err := config.NewTelegramBotConfig(sp.OS())
 		if err != nil {
-			logger.Fatal("di", "tgConfig", "error", err.Error())
+			logger.Fatal("di", "telegram config", "error", err.Error())
 		}
 
-		sp.tgConfig = tgConfig
+		sp.tgConfig = cfg
 	}
 
 	return sp.tgConfig
@@ -191,22 +183,35 @@ func (sp *serviceProvider) TgBot() *TGBotAPI.BotAPI {
 	if sp.tgBot == nil {
 		bot, err := TGBotAPI.NewBotAPI(sp.TelegramConfig().Token())
 		if err != nil {
-			logger.Fatal("di", "tgBot", "error", err.Error())
+			logger.Fatal("di", "telegram bot", "error", err.Error())
 		}
 
-		_, err = bot.SetWebhook(TGBotAPI.NewWebhook(sp.TelegramConfig().WebhookLink()))
-		if err != nil {
-			logger.Fatal("di", "tgBot", "type", "set telegram webhook", "error", err.Error())
-		}
+		logger.Log(
+			"notifier", "telegram",
+			"msg", "authorized on account",
+		)
 
-		//info, err := bot.GetWebhookInfo()
-		_, err = bot.GetWebhookInfo()
-		if err != nil {
-			logger.Fatal("di", "tgBot", "type", "get telegram webhook", "error", err.Error())
+		if sp.TelegramConfig().WebhookLink() == "" {
+			_, err = bot.SetWebhook(TGBotAPI.NewWebhook(sp.TelegramConfig().WebhookLink()))
+			if err != nil {
+				logger.Fatal("di", "tgBot", "type", "set telegram webhook", "error", err.Error())
+			}
+
+			logger.Log(
+				"notifier", "telegram",
+				"msg", "setting webhook",
+				"url", sp.tgConfig.WebhookLink(),
+			)
+
+			//info, err := bot.GetWebhookInfo()
+			_, err = bot.GetWebhookInfo()
+			if err != nil {
+				logger.Fatal("di", "tgBot", "type", "get telegram webhook", "error", err.Error())
+			}
+			/*if info.LastErrorDate != 0 {
+				return fmt.Errorf("telegram callback failed: %s", info.LastErrorMessage)
+			}*/
 		}
-		/*if info.LastErrorDate != 0 {
-			return fmt.Errorf("telegram callback failed: %s", info.LastErrorMessage)
-		}*/
 
 		sp.tgBot = bot
 	}
@@ -217,7 +222,11 @@ func (sp *serviceProvider) TgBot() *TGBotAPI.BotAPI {
 // Kafka ...
 func (sp *serviceProvider) Kafka() *kafka.Kafka {
 	if sp.kafka == nil {
-		sp.kafka = kafka.NewKafka(sp.KafkaConfig().GetAddresses(), sp.TGNotifier(), sp.TGTimeAPIClient())
+		k, err := kafka.NewKafka(sp.KafkaConfig().Addresses(), sp.TGNotifier(), sp.TGTimeAPIClient())
+		if err != nil {
+			logger.Fatal("di", "kafka", "error", err.Error())
+		}
+		sp.kafka = k
 	}
 
 	return sp.kafka
@@ -240,7 +249,7 @@ func (sp *serviceProvider) TGTimeAPIConfig() *config.TgTimeAPIConfig {
 // TGTimeAPIClient ...
 func (sp *serviceProvider) TGTimeAPIClient() *api_pb.Client {
 	if sp.tgTimeAPIClient == nil {
-		sp.tgTimeAPIClient = api_pb.NewClient(sp.TGTimeAPIConfig())
+		sp.tgTimeAPIClient = api_pb.NewClient(sp.TGTimeAPIConfig().Address())
 	}
 
 	return sp.tgTimeAPIClient

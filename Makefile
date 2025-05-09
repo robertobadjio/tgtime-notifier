@@ -3,6 +3,7 @@
 .PHONY: help
 
 DOCKER_COMPOSE ?= docker compose -f docker-compose.yml
+DOCKER_COMPOSE_METRIC ?= docker compose -f docker-compose.yml -f docker-compose.metric.yml
 PPROF_DIR = ./pprof
 PPROF_COMMAND = go tool pprof
 PANDORA_COMMAND = ./bin/pandora
@@ -48,6 +49,15 @@ up: vet ## Start services
 down: ## Down services
 	$(DOCKER_COMPOSE) down
 
+build-metric: ## Build service containers with metrics
+	$(DOCKER_COMPOSE_METRIC) build
+
+up-metric: vet ## Start services with metrics
+	$(DOCKER_COMPOSE_METRIC) up -d $(SERVICES)
+
+down-metric: ## Down services with metrics
+	$(DOCKER_COMPOSE_METRIC) down
+
 clean: ## Delete all containers
 	$(DOCKER_COMPOSE) down --remove-orphans
 
@@ -90,3 +100,17 @@ test-unit: ## Run unit tests
 
 test-unit-race: ## Run unit tests with -race flag
 	$(GO_TEST_COMMAND) ./internal/... -count=1 -race
+
+build-service: ## Build bin file service
+	go build -o tgtime-notifier ./cmd/notifier/notifier.go
+
+test-e2e: build-service ## Run end-to-end tests
+	$(GO_TEST_COMMAND) ./test/e2e/...
+
+audit: ## Audit project
+	go mod verify
+	go build -v ./...
+	vet
+	lint
+	test-unit-race
+	test-e2e

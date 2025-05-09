@@ -16,7 +16,7 @@ type TgTimeAggregatorConfig struct {
 	port string
 }
 
-// NewTgTimeAggregatorConfig ???
+// NewTgTimeAggregatorConfig ...
 func NewTgTimeAggregatorConfig(os OS) (*TgTimeAggregatorConfig, error) {
 	if os == nil {
 		return nil, fmt.Errorf("os must not be nil")
@@ -36,6 +36,6 @@ func NewTgTimeAggregatorConfig(os OS) (*TgTimeAggregatorConfig, error) {
 }
 
 // Address ...
-func (tta *TgTimeAggregatorConfig) Address() string {
+func (tta TgTimeAggregatorConfig) Address() string {
 	return net.JoinHostPort(tta.host, tta.port)
 }

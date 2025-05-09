@@ -1,0 +1,54 @@
+syntax = 'proto3';
+
+service Api {
+  rpc GetRouters (GetRoutersRequest) returns (GetRoutersResponse) {}
+  rpc GetUserByMacAddress (GetUserByMacAddressRequest) returns (GetUserByMacAddressResponse) {}
+  rpc GetUserByTelegramId (GetUserByTelegramIdRequest) returns (GetUserByTelegramIdResponse) {}
+}
+
+message Router {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+  string address = 4;
+  string login = 5;
+  string password = 6;
+  bool status = 7;
+  bool workTime = 8;
+}
+
+message User {
+  int64 id = 1;
+  string name = 2;
+  string surname = 3;
+  string lastname = 4;
+  string birthDate = 5;
+  string email = 6;
+  string macAddress = 7;
+  int64 telegramId = 8;
+  string role = 9;
+  int64 department = 10;
+  string position = 11;
+}
+
+message GetRoutersRequest {}
+
+message GetRoutersResponse {
+  repeated Router routers = 1;
+}
+
+message GetUserByMacAddressRequest {
+  string macAddress = 1;
+}
+
+message GetUserByMacAddressResponse {
+  User user = 1;
+}
+
+message GetUserByTelegramIdRequest {
+  int64 telegramId = 1;
+}
+
+message GetUserByTelegramIdResponse {
+  User user = 1;
+}

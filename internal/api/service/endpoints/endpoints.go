@@ -24,24 +24,14 @@ func NewEndpointSet(s *api.NotifierService) Set {
 
 // MakeLivenessEndpoint ...
 func MakeLivenessEndpoint(svc *api.NotifierService) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		_ = request.(LivenessRequest)
-		code, err := svc.Liveness()
-		if err != nil {
-			return LivenessResponse{Code: code, Err: err.Error()}, err
-		}
-		return LivenessResponse{Code: code, Err: ""}, nil
+	return func(_ context.Context, _ interface{}) (interface{}, error) {
+		return LivenessResponse{Code: svc.Liveness(), Err: ""}, nil
 	}
 }
 
 // MakeReadinessEndpoint ...
 func MakeReadinessEndpoint(svc *api.NotifierService) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		_ = request.(ReadinessRequest)
-		code, err := svc.Readiness()
-		if err != nil {
-			return ReadinessResponse{Code: code, Err: err.Error()}, err
-		}
-		return ReadinessResponse{Code: code, Err: ""}, nil
+	return func(_ context.Context, _ interface{}) (interface{}, error) {
+		return ReadinessResponse{Code: svc.Readiness(), Err: ""}, nil
 	}
 }

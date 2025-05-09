@@ -84,10 +84,19 @@ func (tn *TGNotifier) setKeyboard(message TGBotAPI.MessageConfig) TGBotAPI.Messa
 }
 
 func (tn *TGNotifier) sendMessage(text string, telegramID int64) error {
-	_, err := tn.bot.Send(tn.setKeyboard(TGBotAPI.NewMessage(
-		telegramID,
-		text,
-	)))
+	var err error
+	if telegramID > 0 {
+		_, err = tn.bot.Send(tn.setKeyboard(TGBotAPI.NewMessage(
+			telegramID,
+			text,
+		)))
+	} else {
+		_, err = tn.bot.Send(TGBotAPI.NewMessage(
+			telegramID,
+			text,
+		))
+	}
+
 	if err != nil {
 		return fmt.Errorf("error send message: %w", err)
 	}

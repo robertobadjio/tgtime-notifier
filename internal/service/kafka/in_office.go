@@ -46,12 +46,11 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context) error {
 				if errors.Is(err, io.EOF) {
 					break // TODO: ?
 				}
-
 				return fmt.Errorf("reading message: %w", err)
 			}
 			userResponse, err := k.tgTimeAPIClient.GetUserByMacAddress(ctx, string(m.Value))
 			if err != nil {
-				logger.Log(
+				logger.Error(
 					"component", "kafka",
 					"during", "read",
 					"topic", inOfficeTopic,
@@ -66,7 +65,7 @@ func (k *Kafka) ConsumeInOffice(ctx context.Context) error {
 				telegram.ParamsWelcomeMessage{TelegramID: userResponse.User.TelegramId},
 			)
 			if err != nil {
-				logger.Log(
+				logger.Error(
 					"component", "kafka",
 					"during", "read",
 					"topic", inOfficeTopic,

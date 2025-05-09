@@ -18,11 +18,13 @@ func TestNewKafkaConfig(t *testing.T) {
 
 		expectedNilObj bool
 		expectedErr    error
+		expectedConfig *KafkaConfig
 	}{
 		"create config with empty OS": {
 			os: func() OS {
 				return nil
 			},
+
 			expectedNilObj: true,
 			expectedErr:    errors.New("os must not be nil"),
 		},
@@ -36,8 +38,13 @@ func TestNewKafkaConfig(t *testing.T) {
 
 				return osMock
 			},
+
 			expectedNilObj: false,
 			expectedErr:    nil,
+			expectedConfig: &KafkaConfig{
+				addresses: []string{"127.0.0.1:9092", "127.0.0.1:9093", "127.0.0.1:9094"},
+				enabled:   true,
+			},
 		},
 	}
 
@@ -52,6 +59,7 @@ func TestNewKafkaConfig(t *testing.T) {
 				assert.Nil(t, cfg)
 			} else {
 				assert.NotNil(t, cfg)
+				assert.Equal(t, test.expectedConfig, cfg)
 			}
 		})
 	}
@@ -74,6 +82,7 @@ func TestGetAddresses(t *testing.T) {
 
 				return osMock
 			},
+
 			expectedAddresses: []string{},
 		},
 		"get addresses": {
@@ -86,6 +95,7 @@ func TestGetAddresses(t *testing.T) {
 
 				return osMock
 			},
+
 			expectedAddresses: []string{"127.0.0.1:9092", "127.0.0.1:9093", "127.0.0.1:9094"},
 		},
 	}
@@ -97,7 +107,7 @@ func TestGetAddresses(t *testing.T) {
 			cfg, err := NewKafkaConfig(test.os())
 			assert.Nil(t, err)
 			assert.NotNil(t, cfg)
-			assert.Equal(t, test.expectedAddresses, cfg.GetAddresses())
+			assert.Equal(t, test.expectedAddresses, cfg.Addresses())
 		})
 	}
 }

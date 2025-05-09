@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"errors"
 
 	"github.com/robertobadjio/tgtime-notifier/internal/service/client/api_pb"
 	"github.com/robertobadjio/tgtime-notifier/internal/service/notifier/telegram"
@@ -23,6 +24,17 @@ func NewKafka(
 	brokers []string,
 	notifier notifier,
 	tgTimeAPIClient *api_pb.Client,
-) *Kafka {
-	return &Kafka{brokers: brokers, notifier: notifier, tgTimeAPIClient: tgTimeAPIClient}
+) (*Kafka, error) {
+	if len(brokers) == 0 {
+		return nil, errors.New("no brokers provided")
+	}
+
+	if tgTimeAPIClient == nil {
+		return nil, errors.New("tgTimeAPIClient is nil")
+	}
+	if notifier == nil {
+		return nil, errors.New("notifier is nil")
+	}
+
+	return &Kafka{brokers: brokers, notifier: notifier, tgTimeAPIClient: tgTimeAPIClient}, nil
 }
